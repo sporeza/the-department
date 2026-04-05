@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Department</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Courier+Prime:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/floorplan.css">
+</head>
+<body>
+
+  <!-- ===== THREE-PANEL LAYOUT ===== -->
+  <div id="game-container">
+
+    <!-- LEFT PANEL: Click Zone + Stats -->
+    <aside id="panel-left" class="panel">
+
+      <h1 id="dept-name" class="dept-name" title="Double-click to rename">The Department</h1>
+
+      <!-- Stamp & Form Area -->
+      <div id="click-zone">
+        <div id="stamp" class="stamp">
+          <span class="stamp-text">APPROVED</span>
+        </div>
+        <div id="form-box" class="form-box">
+          <div class="form-lines">
+            <div class="form-line"></div>
+            <div class="form-line"></div>
+            <div class="form-line"></div>
+            <div class="form-line"></div>
+            <div class="form-line"></div>
+            <div class="form-line"></div>
+            <div class="form-line"></div>
+            <div class="form-line"></div>
+          </div>
+          <div class="form-header">FORM 7-B</div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div id="stats">
+        <div class="stat-row">
+          <span class="stat-label">Forms</span>
+          <span id="forms-total" class="stat-value">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Forms/sec</span>
+          <span id="forms-per-sec" class="stat-value">0.0</span>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- CENTRE PANEL: Office Floor Plan -->
+    <main id="panel-centre" class="panel">
+      <div id="floor-plan">
+        <!-- Starter room -->
+        <div class="room room-registry">
+          <div class="room-inner">
+            <span class="room-label">Registry</span>
+            <span class="room-badge">1</span>
+          </div>
+        </div>
+        <!-- Connective tissue placeholder -->
+        <div class="corridor corridor-h" style="top: 52%; left: 38%; width: 60px;"></div>
+        <!-- Ghost rooms (future growth hints) -->
+        <div class="room room-ghost" style="top: 44%; left: 60%;">
+          <div class="room-inner">
+            <span class="room-label">?</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT PANEL: Departments & Upgrades Shop -->
+    <aside id="panel-right" class="panel">
+
+      <!-- Tabs -->
+      <div id="shop-tabs">
+        <button class="shop-tab active" data-tab="departments">Departments</button>
+        <button class="shop-tab" data-tab="upgrades">Upgrades</button>
+      </div>
+
+      <!-- Departments List -->
+      <div id="tab-departments" class="tab-content active">
+
+        <div class="dept-item">
+          <div class="dept-info">
+            <h3 class="dept-tier-name">The Intern</h3>
+            <p class="dept-desc">A single person, slightly confused, filing things into the wrong cabinet but with tremendous enthusiasm.</p>
+            <p class="dept-rate">+0.1 Forms/sec</p>
+          </div>
+          <div class="dept-buy">
+            <span class="dept-cost">✦ 15</span>
+            <button class="btn-buy" disabled>Buy</button>
+            <span class="dept-owned">0</span>
+          </div>
+        </div>
+
+        <div class="dept-item">
+          <div class="dept-info">
+            <h3 class="dept-tier-name">The Filing Cabinet</h3>
+            <p class="dept-desc">A beige four-drawer cabinet. It hums. Nobody installed a humming mechanism.</p>
+            <p class="dept-rate">+0.5 Forms/sec</p>
+          </div>
+          <div class="dept-buy">
+            <span class="dept-cost">✦ 100</span>
+            <button class="btn-buy" disabled>Buy</button>
+            <span class="dept-owned">0</span>
+          </div>
+        </div>
+
+        <div class="dept-item">
+          <div class="dept-info">
+            <h3 class="dept-tier-name">The Sub-Committee</h3>
+            <p class="dept-desc">A group convened to discuss whether a group should be convened. Surprisingly productive.</p>
+            <p class="dept-rate">+4.0 Forms/sec</p>
+          </div>
+          <div class="dept-buy">
+            <span class="dept-cost">✦ 1,100</span>
+            <button class="btn-buy" disabled>Buy</button>
+            <span class="dept-owned">0</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Upgrades List (placeholder) -->
+      <div id="tab-upgrades" class="tab-content">
+        <p class="tab-placeholder">Upgrades will become available once Directives are unlocked.</p>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- NEWS TICKER -->
+  <div id="ticker-bar">
+    <div id="ticker-track">
+      <span class="ticker-item">Local department surpasses GDP of several nations; declines to comment</span>
+      <span class="ticker-sep">◆</span>
+      <span class="ticker-item">Sub-Committee formed to investigate previous Sub-Committee; new Sub-Committee to be investigated by further Sub-Committee</span>
+      <span class="ticker-sep">◆</span>
+      <span class="ticker-item">Intern missing since Tuesday; colleagues assume they found the filing room on sublevel 4 and are unable to leave</span>
+      <span class="ticker-sep">◆</span>
+      <span class="ticker-item">The Mandate has amended itself again; legal scholars describe the new version as "yes"</span>
+      <span class="ticker-sep">◆</span>
+      <span class="ticker-item">Scientists confirm: bureaucracy is the universe's most stable structure, expected to outlast stars</span>
+      <span class="ticker-sep">◆</span>
+      <span class="ticker-item">Department of Redundancy Department now largest department in The Department</span>
+      <span class="ticker-sep">◆</span>
+    </div>
+  </div>
+
+  <!-- Scripts (no logic yet, just structure) -->
+  <script src="js/game.js"></script>
+  <script src="js/departments.js"></script>
+  <script src="js/upgrades.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/floorplan.js"></script>
+  <script src="js/save.js"></script>
+
+</body>
+</html>

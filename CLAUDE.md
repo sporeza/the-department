@@ -10,7 +10,19 @@ The full game design document lives at `docs/the-department-gdd.md` (v0.2).
 
 ## Project Status
 
-Pre-implementation. The repository currently contains only the GDD and gitignore. No tech stack has been chosen yet.
+Visual skeleton complete. Tech stack: vanilla HTML/CSS/JS (no build tools, no frameworks). The three-panel layout, APPROVE stamp, form box, floor plan placeholder, department shop, news ticker, and full visual styling are in place. No game logic wired yet.
+
+## Tech Stack & File Structure
+
+- `index.html` — single-page entry point, loads all CSS and JS
+- `css/main.css` — layout, panels, stamp, form box, stats, shop, ticker
+- `css/floorplan.css` — centre-panel floor plan rooms, corridors, ambient glow
+- `js/game.js` — (stub) core game state, main loop, tick calculations
+- `js/departments.js` — (stub) department data, cost scaling, purchasing
+- `js/upgrades.js` — (stub) upgrade definitions, unlock conditions
+- `js/ui.js` — (stub) DOM updates, tab switching, name renaming, ticker
+- `js/floorplan.js` — (stub) floor plan rendering, room placement, growth
+- `js/save.js` — (stub) localStorage save/load, offline income
 
 ## Core Mechanics Summary
 

@@ -1,0 +1,130 @@
+/* ============================================================
+   THE DEPARTMENT — Floor Plan Styles
+   ============================================================ */
+
+#floor-plan {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  /* Subtle grid / graph-paper texture */
+  background-image:
+    linear-gradient(rgba(200, 134, 10, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 134, 10, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ---------- Rooms ---------- */
+.room {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--amber);
+  border-radius: 6px;
+  background:
+    linear-gradient(135deg, rgba(245, 240, 232, 0.9) 0%, rgba(232, 224, 208, 0.9) 100%);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.room-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.room-label {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--green);
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+.room-badge {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: var(--cream);
+  background: var(--amber);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Registry — the starter room, centred */
+.room-registry {
+  width: 140px;
+  height: 100px;
+  top: 40%;
+  left: 22%;
+  transform: translate(-50%, -50%);
+  border-width: 3px;
+  border-color: var(--green);
+}
+
+.room-registry .room-label {
+  font-size: 1rem;
+}
+
+.room-registry .room-badge {
+  background: var(--green);
+}
+
+/* Ghost rooms (future department placeholders) */
+.room-ghost {
+  width: 90px;
+  height: 65px;
+  border: 2px dashed var(--cream-d);
+  background: rgba(245, 240, 232, 0.35);
+  box-shadow: none;
+}
+
+.room-ghost .room-label {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 1.4rem;
+  color: var(--cream-d);
+  opacity: 0.6;
+}
+
+/* ---------- Corridors / Connective Tissue ---------- */
+.corridor {
+  position: absolute;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--cream-d) 0px,
+      var(--cream-d) 6px,
+      transparent 6px,
+      transparent 12px
+    );
+  opacity: 0.5;
+}
+
+.corridor-h {
+  height: 3px;
+}
+
+.corridor-v {
+  width: 3px;
+}
+
+/* ---------- Warm ambient pulse ---------- */
+@keyframes ambient-glow {
+  0%, 100% { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
+  50%      { box-shadow: 0 2px 16px rgba(200, 134, 10, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
+}
+
+.room-registry {
+  animation: ambient-glow 4s ease-in-out infinite;
+}

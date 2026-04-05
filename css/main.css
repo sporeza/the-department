@@ -1,0 +1,455 @@
+/* ============================================================
+   THE DEPARTMENT — Main Stylesheet
+   Palette: amber #C8860A, cream #F5F0E8, green #2D4A2D,
+            ink #1A1A1A, red #8B1A1A
+   ============================================================ */
+
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --amber:   #C8860A;
+  --cream:   #F5F0E8;
+  --green:   #2D4A2D;
+  --ink:     #1A1A1A;
+  --red:     #8B1A1A;
+  --cream-d: #E8E0D0;   /* darker cream for borders */
+  --amber-l: #D4A24A;   /* lighter amber for highlights */
+  --amber-d: #A06E08;   /* darker amber */
+  --green-l: #3D6A3D;   /* lighter green */
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Paper-grain texture overlay on the entire page */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.6;
+}
+
+/* ---------- Three-Panel Layout ---------- */
+#game-container {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  height: calc(100vh - 36px);  /* leave room for ticker */
+  gap: 0;
+}
+
+.panel {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scrollbar styling */
+.panel::-webkit-scrollbar { width: 6px; }
+.panel::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb { background: var(--cream-d); border-radius: 3px; }
+
+/* ============================================================
+   LEFT PANEL
+   ============================================================ */
+#panel-left {
+  background: var(--cream);
+  border-right: 2px solid var(--cream-d);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px;
+  gap: 20px;
+}
+
+/* Department Name */
+.dept-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: 1.55rem;
+  color: var(--ink);
+  text-align: center;
+  letter-spacing: 0.02em;
+  cursor: default;
+  user-select: none;
+  border-bottom: 2px solid var(--amber);
+  padding-bottom: 8px;
+  width: 100%;
+}
+
+/* Click Zone */
+#click-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+/* ---------- APPROVE Stamp ---------- */
+.stamp {
+  position: relative;
+  width: 180px;
+  height: 72px;
+  border: 4px solid var(--red);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-3deg);
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+}
+
+/* Circular border effect inside */
+.stamp::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 2px solid var(--red);
+  border-radius: 4px;
+  opacity: 0.5;
+}
+
+/* Outer ring suggestion */
+.stamp::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 2px solid var(--red);
+  border-radius: 10px;
+  opacity: 0.15;
+}
+
+.stamp-text {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: 1.6rem;
+  letter-spacing: 0.18em;
+  color: var(--red);
+  text-transform: uppercase;
+}
+
+/* ---------- Form Box ---------- */
+.form-box {
+  position: relative;
+  width: 220px;
+  height: 260px;
+  background: #FDFBF5;
+  border: 2px solid var(--cream-d);
+  border-radius: 2px;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.08),
+    inset 0 0 30px rgba(200, 134, 10, 0.04);
+  padding: 32px 16px 16px;
+  overflow: hidden;
+}
+
+/* Rule-paper lines */
+.form-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-top: 8px;
+}
+
+.form-line {
+  height: 1px;
+  background: #C8D4E0;
+  opacity: 0.45;
+}
+
+/* "FORM 7-B" header */
+.form-header {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--ink);
+  opacity: 0.35;
+  text-transform: uppercase;
+}
+
+/* Left margin line (classic rule-paper) */
+.form-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 36px;
+  width: 1px;
+  height: 100%;
+  background: #D4918A;
+  opacity: 0.3;
+}
+
+/* ---------- Stats ---------- */
+#stats {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(200, 134, 10, 0.06);
+  border: 1px solid var(--cream-d);
+  border-radius: 4px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.stat-label {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 0.85rem;
+  color: var(--ink);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stat-value {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--amber-d);
+}
+
+
+/* ============================================================
+   CENTRE PANEL (floor plan lives in floorplan.css)
+   ============================================================ */
+#panel-centre {
+  background:
+    radial-gradient(ellipse at 40% 40%, rgba(200, 134, 10, 0.08) 0%, transparent 70%),
+    linear-gradient(180deg, #F2EBD9 0%, #EDE4D0 100%);
+  border-right: 2px solid var(--cream-d);
+  overflow: hidden;
+}
+
+
+/* ============================================================
+   RIGHT PANEL
+   ============================================================ */
+#panel-right {
+  background: var(--cream);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+/* ---------- Shop Tabs ---------- */
+#shop-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--cream-d);
+  flex-shrink: 0;
+}
+
+.shop-tab {
+  flex: 1;
+  padding: 12px 8px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  opacity: 0.45;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+
+.shop-tab:hover {
+  opacity: 0.7;
+}
+
+.shop-tab.active {
+  opacity: 1;
+  border-bottom-color: var(--amber);
+  color: var(--amber-d);
+}
+
+/* ---------- Tab Content ---------- */
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.tab-placeholder {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  color: var(--ink);
+  opacity: 0.4;
+  text-align: center;
+  padding: 40px 16px;
+  font-size: 0.9rem;
+}
+
+/* ---------- Department Items ---------- */
+.dept-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--cream-d);
+}
+
+.dept-item:last-child {
+  border-bottom: none;
+}
+
+.dept-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dept-tier-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--green);
+  margin-bottom: 2px;
+}
+
+.dept-desc {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.78rem;
+  color: var(--ink);
+  opacity: 0.55;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.dept-rate {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: var(--amber-d);
+}
+
+/* Buy column */
+.dept-buy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 70px;
+}
+
+.dept-cost {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--amber);
+}
+
+.btn-buy {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 14px;
+  background: var(--green);
+  color: var(--cream);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-buy:hover:not(:disabled) {
+  background: var(--green-l);
+  transform: translateY(-1px);
+}
+
+.btn-buy:disabled {
+  background: var(--cream-d);
+  color: #AAA;
+  cursor: not-allowed;
+}
+
+.dept-owned {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: var(--ink);
+  opacity: 0.5;
+}
+
+
+/* ============================================================
+   NEWS TICKER
+   ============================================================ */
+#ticker-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: var(--green);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  z-index: 100;
+  border-top: 2px solid var(--amber-d);
+}
+
+#ticker-track {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: ticker-scroll 45s linear infinite;
+  gap: 0;
+}
+
+.ticker-item {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--cream);
+  padding: 0 24px;
+  opacity: 0.9;
+}
+
+.ticker-sep {
+  color: var(--amber);
+  font-size: 0.6rem;
+  opacity: 0.5;
+}
+
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
