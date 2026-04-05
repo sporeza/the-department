@@ -40,6 +40,8 @@ function gameLoop(now) {
 
 // Start once DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+  Save.load();          // restore state before UI renders departments
   UI.init();
+  Save.startAutoSave(); // auto-save every 30s + on page unload
   requestAnimationFrame(gameLoop);
 });
