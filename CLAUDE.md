@@ -10,19 +10,46 @@ The full game design document lives at `docs/the-department-gdd.md` (v0.2).
 
 ## Project Status
 
-Visual skeleton complete. Tech stack: vanilla HTML/CSS/JS (no build tools, no frameworks). The three-panel layout, APPROVE stamp, form box, floor plan placeholder, department shop, news ticker, and full visual styling are in place. No game logic wired yet.
+Core gameplay loop is functional. The player can click to earn Forms, buy departments for passive income, and watch the floor plan grow organically. Save/load with offline income is working. Tech stack: vanilla HTML/CSS/JS (no build tools, no frameworks).
+
+### What's done
+- Click mechanic — APPROVE stamp with hit/miss detection (stamp-size-aware), animations (press, shake, imprint, floating text)
+- All 8 department tiers with ~1.15× cost scaling and passive Forms/sec
+- Department shop dynamically rendered from data, buy buttons auto-enable/disable each frame
+- Organic floor plan — rooms inflate on first purchase, grow with ownership, mycelium corridors connect them, liminal spaces appear at thresholds
+- localStorage save/load with auto-save (30s + beforeunload), offline income on return
+- Game loop via requestAnimationFrame with delta-time ticking
+- News ticker (static content, 6 items)
+
+### What's not done yet (PoC scope)
+- Upgrades system (js/upgrades.js is still a stub) — needs Directives resource, conversion mechanic, ~15 upgrades
+- Milestone system with flavour text (20+ milestones)
+- Click upgrades (5 planned)
+- Department name renaming (double-click)
+- Prestige / Restructuring mechanic
+- News ticker dynamic content (milestone-reactive, 30+ lines)
+- Floor plan hover for per-department stats
 
 ## Tech Stack & File Structure
 
 - `index.html` — single-page entry point, loads all CSS and JS
-- `css/main.css` — layout, panels, stamp, form box, stats, shop, ticker
-- `css/floorplan.css` — centre-panel floor plan rooms, corridors, ambient glow
-- `js/game.js` — (stub) core game state, main loop, tick calculations
-- `js/departments.js` — (stub) department data, cost scaling, purchasing
+- `css/main.css` — layout, panels, stamp animations, form box, stats, shop, ticker
+- `css/floorplan.css` — floor plan rooms, corridors, liminal spaces, ambient glow
+- `js/game.js` — Game object (state + tick), requestAnimationFrame loop, DOMContentLoaded init orchestration
+- `js/departments.js` — Departments object with 8 tier definitions, cost scaling, buy logic, income recalculation
 - `js/upgrades.js` — (stub) upgrade definitions, unlock conditions
-- `js/ui.js` — (stub) DOM updates, tab switching, name renaming, ticker
-- `js/floorplan.js` — (stub) floor plan rendering, room placement, growth
-- `js/save.js` — (stub) localStorage save/load, offline income
+- `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, tab switching
+- `js/floorplan.js` — FloorPlan object: dynamic room/corridor/liminal-space rendering, organic growth, snapshot-diffing to skip unchanged frames
+- `js/save.js` — Save object: serialise/deserialise, localStorage persistence, auto-save interval, offline income calculation
+
+## Architecture Notes
+
+- All game objects (`Game`, `Departments`, `UI`, `FloorPlan`, `Save`) are plain object literals on `window` — no modules, no classes, no build step.
+- Script load order matters: `game.js` → `departments.js` → `upgrades.js` → `ui.js` → `floorplan.js` → `save.js`. Init sequence in DOMContentLoaded: `Save.load()` → `UI.init()` → `FloorPlan.init()` → `Save.startAutoSave()` → game loop.
+- Department list in the right panel is rendered dynamically from `Departments.tiers` — no hardcoded HTML for shop items.
+- Floor plan rooms are positioned with hand-tuned percentage coordinates. Corridors are calculated as pixel lines between room centres each update.
+- Hit detection for stamp clicks shrinks the valid target by half the stamp's dimensions on each side, so the stamp visual must be mostly inside the form box to count as a hit.
+- `FloorPlan.update()` uses a stringified snapshot of department ownership to skip DOM work when nothing changed.
 
 ## Core Mechanics Summary
 
