@@ -14,9 +14,11 @@ const UI = {
     this.els.stamp     = document.getElementById('stamp');
     this.els.formsTotal  = document.getElementById('forms-total');
     this.els.formsPerSec = document.getElementById('forms-per-sec');
+    this.els.deptList    = document.getElementById('tab-departments');
 
     this.bindClick();
     this.bindTabs();
+    this.renderDepartments();
   },
 
   // --- Click mechanic ---
@@ -100,6 +102,49 @@ const UI = {
     el.style.top = y + 'px';
     document.body.appendChild(el);
     el.addEventListener('animationend', () => el.remove());
+  },
+
+  // --- Department rendering ---
+  renderDepartments() {
+    const frag = document.createDocumentFragment();
+    Departments.tiers.forEach((tier, i) => {
+      const el = document.createElement('div');
+      el.className = 'dept-item';
+      el.dataset.tier = i;
+      el.innerHTML =
+        '<div class="dept-info">' +
+          '<h3 class="dept-tier-name">' + tier.name + '</h3>' +
+          '<p class="dept-desc">' + tier.desc + '</p>' +
+          '<p class="dept-rate">+' + tier.baseRate + ' Forms/sec</p>' +
+        '</div>' +
+        '<div class="dept-buy">' +
+          '<span class="dept-cost">✦ ' + formatNumber(Departments.getCost(tier)) + '</span>' +
+          '<button class="btn-buy">Buy</button>' +
+          '<span class="dept-owned">' + tier.owned + '</span>' +
+        '</div>';
+
+      el.querySelector('.btn-buy').addEventListener('click', () => {
+        if (Departments.buy(tier)) {
+          this.updateStats();
+          this.updateDepartments();
+        }
+      });
+
+      frag.appendChild(el);
+    });
+    this.els.deptList.appendChild(frag);
+  },
+
+  /** Update cost, owned count, and button enabled state for all tiers */
+  updateDepartments() {
+    const items = this.els.deptList.querySelectorAll('.dept-item');
+    items.forEach((el) => {
+      const tier = Departments.tiers[el.dataset.tier];
+      const cost = Departments.getCost(tier);
+      el.querySelector('.dept-cost').textContent = '✦ ' + formatNumber(cost);
+      el.querySelector('.dept-owned').textContent = tier.owned;
+      el.querySelector('.btn-buy').disabled = Game.forms < cost;
+    });
   },
 
   // --- Stats display ---

@@ -33,6 +33,7 @@ function gameLoop(now) {
 
   Game.tick(dt);
   UI.updateStats();
+  UI.updateDepartments();
 
   requestAnimationFrame(gameLoop);
 }
