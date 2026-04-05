@@ -15,7 +15,7 @@
   background-size: 28px 28px;
 }
 
-/* ---------- Rooms ---------- */
+/* ---------- Rooms (shared base) ---------- */
 .room {
   position: absolute;
   display: flex;
@@ -28,7 +28,12 @@
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  transition: transform 0.4s ease, opacity 0.4s ease;
+  transform: translate(-50%, -50%);
+  /* Organic inflate/deflate transition */
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.6s ease,
+              width 0.8s ease,
+              height 0.8s ease;
 }
 
 .room-inner {
@@ -36,21 +41,23 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  pointer-events: none;
 }
 
 .room-label {
   font-family: 'Playfair Display', Georgia, serif;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--green);
   letter-spacing: 0.03em;
   text-align: center;
+  white-space: nowrap;
 }
 
 .room-badge {
   font-family: 'Courier Prime', 'Courier New', monospace;
   font-weight: 700;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--cream);
   background: var(--amber);
   border-radius: 50%;
@@ -62,44 +69,51 @@
   line-height: 1;
 }
 
-/* Registry — the starter room, centred */
+/* ---------- Registry (always visible, central) ---------- */
 .room-registry {
-  width: 140px;
-  height: 100px;
-  top: 40%;
-  left: 22%;
-  transform: translate(-50%, -50%);
   border-width: 3px;
   border-color: var(--green);
+  z-index: 2;
+  animation: ambient-glow 4s ease-in-out infinite;
 }
 
 .room-registry .room-label {
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .room-registry .room-badge {
   background: var(--green);
+  width: 26px;
+  height: 26px;
+  font-size: 0.7rem;
 }
 
-/* Ghost rooms (future department placeholders) */
-.room-ghost {
-  width: 90px;
-  height: 65px;
-  border: 2px dashed var(--cream-d);
-  background: rgba(245, 240, 232, 0.35);
+/* ---------- Department rooms ---------- */
+.room-dept {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+  z-index: 1;
+}
+
+/* ---------- Liminal spaces (unlabelled atmospheric rooms) ---------- */
+.room-liminal {
+  border: 1.5px dashed var(--cream-d);
+  background: rgba(245, 240, 232, 0.25);
   box-shadow: none;
-}
-
-.room-ghost .room-label {
-  font-family: 'Courier Prime', 'Courier New', monospace;
-  font-size: 1.4rem;
-  color: var(--cream-d);
-  opacity: 0.6;
+  opacity: 0;
+  z-index: 0;
+  transition: transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 1.5s ease;
 }
 
 /* ---------- Corridors / Connective Tissue ---------- */
 .corridor {
   position: absolute;
+  height: 3px;
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Dashed mycelium-like pattern */
   background:
     repeating-linear-gradient(
       90deg,
@@ -108,23 +122,12 @@
       transparent 6px,
       transparent 12px
     );
-  opacity: 0.5;
-}
-
-.corridor-h {
-  height: 3px;
-}
-
-.corridor-v {
-  width: 3px;
+  /* Grow in from zero width */
+  transition: opacity 0.8s ease 0.2s, width 0.6s ease;
 }
 
 /* ---------- Warm ambient pulse ---------- */
 @keyframes ambient-glow {
   0%, 100% { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
   50%      { box-shadow: 0 2px 16px rgba(200, 134, 10, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
-}
-
-.room-registry {
-  animation: ambient-glow 4s ease-in-out infinite;
 }

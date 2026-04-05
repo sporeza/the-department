@@ -34,6 +34,7 @@ function gameLoop(now) {
   Game.tick(dt);
   UI.updateStats();
   UI.updateDepartments();
+  FloorPlan.update();
 
   requestAnimationFrame(gameLoop);
 }
@@ -42,6 +43,7 @@ function gameLoop(now) {
 document.addEventListener('DOMContentLoaded', () => {
   Save.load();          // restore state before UI renders departments
   UI.init();
+  FloorPlan.init();     // build floor plan after departments are loaded
   Save.startAutoSave(); // auto-save every 30s + on page unload
   requestAnimationFrame(gameLoop);
 });
