@@ -4,4 +4,41 @@
  * tick calculations, and the central game clock.
  */
 
-// Game state will be initialised here in a future pass.
+const Game = {
+  forms: 0,
+  formsPerClick: 1,
+  formsPerSec: 0,
+  totalFormsEarned: 0,
+
+  /** Called every tick (~100ms) to accumulate passive income */
+  tick(dt) {
+    const earned = this.formsPerSec * dt;
+    this.forms += earned;
+    this.totalFormsEarned += earned;
+  },
+
+  /** Called on a successful stamp click */
+  clickApprove() {
+    this.forms += this.formsPerClick;
+    this.totalFormsEarned += this.formsPerClick;
+  }
+};
+
+// --- Main loop ---
+let lastTick = performance.now();
+
+function gameLoop(now) {
+  const dt = (now - lastTick) / 1000; // seconds
+  lastTick = now;
+
+  Game.tick(dt);
+  UI.updateStats();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Start once DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  UI.init();
+  requestAnimationFrame(gameLoop);
+});
