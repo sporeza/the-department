@@ -26,10 +26,13 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - 3 passive/flavour upgrades (Directives): Redundancy Planning (+5% global), Motivational Poster (×1.001), The Memo (×1.10)
 - Upgrades tab in right panel with available/purchased sections, auto-refreshing
 - Milestone system — 33 milestones across 6 categories (Forms earned, first dept purchases, dept quantities, Forms/sec, clicks, total depts, Directives), toast notifications, ticker integration, persisted in save
+- Department renaming — double-click "The Department" title (left panel) or any tier name (right panel) for inline rename, persisted in save
+- Random events system — two-tier spawn timers (Tier 1: 2–5 min, Tier 2: 15–30 min), unlocks at first Filing Cabinet, one active event at a time, clickable in centre panel, toast + ticker on catch/miss
+- The Lost Form (Tier 1) — drifting paper across centre panel, 9s duration, rewards ~30s of current income
+- The Visiting Inspector (Tier 2) — inspector icon patrols floor plan, 17s duration, rewards ×3 all dept output for 60s (temporary buff)
+- Buff system — temporary multiplier buffs from events, ticking countdown, buff UI indicator below stats, integrated into Departments.recalcIncome(), persisted in save with offline decay
 
 ### What's not done yet (PoC scope)
-- Department name renaming (double-click)
-- Random events (just The Lost Form and The Visiting Inspector as proof of concept)
 - Prestige / Restructuring mechanic
 - News ticker dynamic content beyond milestones (30+ static lines)
 - Floor plan hover for per-department stats
@@ -46,14 +49,15 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - `js/departments.js` — Departments object with 8 tier definitions, cost scaling, buy logic, income recalculation
 - `js/upgrades.js` — Upgrades object: 16 upgrade definitions (click/dept-mult/passive/flavour), Directives unlock/conversion, purchase logic, effect calculation
 - `js/milestones.js` — Milestones object: 33 milestone definitions, condition checking, toast notifications, ticker injection, save/restore
-- `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, tab switching
+- `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, tab switching, department renaming
 - `js/floorplan.js` — FloorPlan object: dynamic room/corridor/liminal-space rendering, organic growth, snapshot-diffing to skip unchanged frames
+- `js/events.js` — RandomEvents object: two-tier spawn timers, event definitions (Lost Form, Visiting Inspector), spawn/catch/miss logic, buff system, buff UI, save/restore
 - `js/save.js` — Save object: serialise/deserialise, localStorage persistence, auto-save interval, offline income calculation
 
 ## Architecture Notes
 
-- All game objects (`Game`, `Departments`, `Upgrades`, `Milestones`, `UI`, `FloorPlan`, `Save`) are plain object literals on `window` — no modules, no classes, no build step.
-- Script load order matters: `game.js` → `departments.js` → `upgrades.js` → `milestones.js` → `ui.js` → `floorplan.js` → `save.js`. Init sequence in DOMContentLoaded: `Save.load()` → `UI.init()` → `FloorPlan.init()` → `Save.startAutoSave()` → game loop.
+- All game objects (`Game`, `Departments`, `Upgrades`, `Milestones`, `UI`, `FloorPlan`, `RandomEvents`, `Save`) are plain object literals on `window` — no modules, no classes, no build step.
+- Script load order matters: `game.js` → `departments.js` → `upgrades.js` → `milestones.js` → `ui.js` → `floorplan.js` → `events.js` → `save.js`. Init sequence in DOMContentLoaded: `Save.load()` → `UI.init()` → `FloorPlan.init()` → `RandomEvents.init()` → `Save.startAutoSave()` → game loop.
 - Department list in the right panel is rendered dynamically from `Departments.tiers` — no hardcoded HTML for shop items.
 - Floor plan rooms are positioned with hand-tuned percentage coordinates. Corridors are calculated as pixel lines between room centres each update.
 - Hit detection for stamp clicks shrinks the valid target by half the stamp's dimensions on each side, so the stamp visual must be mostly inside the form box to count as a hit.

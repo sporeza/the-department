@@ -12,7 +12,7 @@ const Save = {
   /** Serialise current game state into a JSON string */
   serialise() {
     return JSON.stringify({
-      version: 4,
+      version: 5,
       timestamp: Date.now(),
       game: {
         forms: Game.forms,
@@ -28,7 +28,8 @@ const Save = {
         purchased: Object.keys(Upgrades.purchased),
         directivesUnlocked: Upgrades.directivesUnlocked
       },
-      milestones: Milestones.getTriggered()
+      milestones: Milestones.getTriggered(),
+      events: (typeof RandomEvents !== 'undefined') ? RandomEvents.serialise() : undefined
     });
   },
 
@@ -89,6 +90,16 @@ const Save = {
     // Restore milestones
     if (data.milestones) {
       Milestones.restore(data.milestones);
+    }
+
+    // Restore random events
+    if (data.events && typeof RandomEvents !== 'undefined') {
+      // Decay buff timers by offline elapsed time
+      if (data.timestamp && data.events.buffs) {
+        const offlineSec = (Date.now() - data.timestamp) / 1000;
+        data.events.buffs.forEach(b => { b.remaining -= offlineSec; });
+      }
+      RandomEvents.restore(data.events);
     }
 
     // Recalculate effects from restored upgrades (sets formsPerClick + dept multipliers)

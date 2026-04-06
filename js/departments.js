@@ -120,6 +120,6 @@ const Departments = {
       const mult = (typeof Upgrades !== 'undefined') ? Upgrades.getDeptMultiplier(tier.id) : 1;
       total += tier.baseRate * tier.owned * mult;
     }
-    Game.formsPerSec = total;
+    Game.formsPerSec = total * (typeof RandomEvents !== 'undefined' ? RandomEvents.getGlobalBuffMultiplier() : 1);
   }
 };

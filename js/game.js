@@ -42,6 +42,7 @@ function gameLoop(now) {
   UI.updateStats();
   UI.updateDepartments();
   FloorPlan.update();
+  if (typeof RandomEvents !== 'undefined') RandomEvents.tick(dt);
 
   requestAnimationFrame(gameLoop);
 }
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   Save.load();          // restore state before UI renders departments
   UI.init();
   FloorPlan.init();     // build floor plan after departments are loaded
+  if (typeof RandomEvents !== 'undefined') RandomEvents.init();
   Save.startAutoSave(); // auto-save every 30s + on page unload
   requestAnimationFrame(gameLoop);
 });
