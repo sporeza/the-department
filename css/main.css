@@ -673,3 +673,74 @@ body::before {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+
+/* Milestone ticker items get a subtle highlight */
+.ticker-milestone {
+  color: var(--amber-l);
+  font-style: normal;
+  font-weight: 700;
+}
+
+
+/* ============================================================
+   MILESTONE TOAST
+   ============================================================ */
+.milestone-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: var(--green);
+  color: var(--cream);
+  border: 2px solid var(--amber);
+  border-radius: 4px;
+  padding: 14px 24px;
+  max-width: 480px;
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.milestone-toast-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.milestone-toast-exit {
+  animation: toast-fade-out 0.5s ease forwards;
+}
+
+@keyframes toast-fade-out {
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+}
+
+.milestone-toast-title {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: var(--amber);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.milestone-toast-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: 1.05rem;
+  color: var(--cream);
+  margin-bottom: 6px;
+}
+
+.milestone-toast-text {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--cream);
+  opacity: 0.85;
+  line-height: 1.45;
+}

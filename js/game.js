@@ -9,6 +9,7 @@ const Game = {
   formsPerClick: 1,
   formsPerSec: 0,
   totalFormsEarned: 0,
+  totalClicks: 0,
   directives: 0,
 
   /** Called every tick (~100ms) to accumulate passive income */
@@ -23,6 +24,7 @@ const Game = {
   clickApprove() {
     this.forms += this.formsPerClick;
     this.totalFormsEarned += this.formsPerClick;
+    this.totalClicks++;
   }
 };
 
@@ -34,6 +36,8 @@ function gameLoop(now) {
   lastTick = now;
 
   Game.tick(dt);
+  Milestones.check();
+  Milestones.processQueue();
   UI.updateStats();
   UI.updateDepartments();
   FloorPlan.update();

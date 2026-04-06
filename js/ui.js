@@ -8,7 +8,7 @@ const UI = {
   els: {},
 
   _lastDirectivesState: false,
-  _lastAvailableUpgrades: '',
+  _lastAvailableUpgrades: null,
 
   init() {
     // Cache DOM elements

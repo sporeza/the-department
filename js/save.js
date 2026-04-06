@@ -12,19 +12,21 @@ const Save = {
   /** Serialise current game state into a JSON string */
   serialise() {
     return JSON.stringify({
-      version: 2,
+      version: 3,
       timestamp: Date.now(),
       game: {
         forms: Game.forms,
         formsPerClick: Game.formsPerClick,
         totalFormsEarned: Game.totalFormsEarned,
+        totalClicks: Game.totalClicks,
         directives: Game.directives
       },
       departments: Departments.tiers.map(t => ({ id: t.id, owned: t.owned })),
       upgrades: {
         purchased: Object.keys(Upgrades.purchased),
         directivesUnlocked: Upgrades.directivesUnlocked
-      }
+      },
+      milestones: Milestones.getTriggered()
     });
   },
 
@@ -57,6 +59,7 @@ const Save = {
     // Restore game state
     Game.forms = data.game.forms || 0;
     Game.totalFormsEarned = data.game.totalFormsEarned || 0;
+    Game.totalClicks = data.game.totalClicks || 0;
     Game.directives = (data.game && data.game.directives) || 0;
 
     // Restore department ownership
@@ -75,6 +78,11 @@ const Save = {
       if (data.upgrades.purchased) {
         data.upgrades.purchased.forEach(id => { Upgrades.purchased[id] = true; });
       }
+    }
+
+    // Restore milestones
+    if (data.milestones) {
+      Milestones.restore(data.milestones);
     }
 
     // Recalculate effects from restored upgrades (sets formsPerClick + dept multipliers)
