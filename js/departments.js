@@ -7,6 +7,24 @@ const Departments = {
   // ~1.15× exponential cost scaling per purchase
   COST_SCALE: 1.15,
 
+  // Custom names set by the player (keyed by tier id)
+  customNames: {},
+
+  /** Get the display name for a tier (custom or default) */
+  getDisplayName(tier) {
+    return this.customNames[tier.id] || tier.name;
+  },
+
+  /** Set a custom name for a tier, or clear it to revert to default */
+  setCustomName(tier, name) {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === tier.name) {
+      delete this.customNames[tier.id];
+    } else {
+      this.customNames[tier.id] = trimmed;
+    }
+  },
+
   tiers: [
     {
       id: 'intern',

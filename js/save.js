@@ -12,16 +12,18 @@ const Save = {
   /** Serialise current game state into a JSON string */
   serialise() {
     return JSON.stringify({
-      version: 3,
+      version: 4,
       timestamp: Date.now(),
       game: {
         forms: Game.forms,
         formsPerClick: Game.formsPerClick,
         totalFormsEarned: Game.totalFormsEarned,
         totalClicks: Game.totalClicks,
-        directives: Game.directives
+        directives: Game.directives,
+        deptName: Game.deptName
       },
       departments: Departments.tiers.map(t => ({ id: t.id, owned: t.owned })),
+      deptNames: Object.keys(Departments.customNames).length > 0 ? Departments.customNames : undefined,
       upgrades: {
         purchased: Object.keys(Upgrades.purchased),
         directivesUnlocked: Upgrades.directivesUnlocked
@@ -61,6 +63,7 @@ const Save = {
     Game.totalFormsEarned = data.game.totalFormsEarned || 0;
     Game.totalClicks = data.game.totalClicks || 0;
     Game.directives = (data.game && data.game.directives) || 0;
+    Game.deptName = (data.game && data.game.deptName) || undefined;
 
     // Restore department ownership
     if (data.departments) {
@@ -70,6 +73,9 @@ const Save = {
         tier.owned = owned[tier.id] || 0;
       });
     }
+
+    // Restore custom department names
+    Departments.customNames = data.deptNames || {};
 
     // Restore upgrades
     if (data.upgrades) {

@@ -28,6 +28,12 @@ const UI = {
     this.bindTabs();
     this.bindConvert();
     this.renderDepartments();
+    this.bindDeptNameRename();
+
+    // Restore custom department name from save
+    if (Game.deptName) {
+      document.getElementById('dept-name').textContent = Game.deptName;
+    }
   },
 
   // --- Click mechanic ---
@@ -123,7 +129,7 @@ const UI = {
       el.dataset.tier = i;
       el.innerHTML =
         '<div class="dept-info">' +
-          '<h3 class="dept-tier-name">' + tier.name + '</h3>' +
+          '<h3 class="dept-tier-name">' + Departments.getDisplayName(tier) + '</h3>' +
           '<p class="dept-desc">' + tier.desc + '</p>' +
           '<p class="dept-rate">+' + tier.baseRate + ' Forms/sec</p>' +
         '</div>' +
@@ -140,12 +146,51 @@ const UI = {
         }
       });
 
+      // Double-click to rename department
+      el.querySelector('.dept-tier-name').addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.startDeptRename(e.currentTarget, tier);
+      });
+
       frag.appendChild(el);
     });
     this.els.deptList.appendChild(frag);
   },
 
-  /** Update cost, owned count, and button enabled state for all tiers */
+  /** Replace a department name <h3> with an inline text input for renaming */
+  startDeptRename(nameEl, tier) {
+    if (nameEl.querySelector('input')) return; // already editing
+
+    const currentName = Departments.getDisplayName(tier);
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'dept-rename-input';
+    input.value = currentName;
+    input.maxLength = 40;
+
+    nameEl.textContent = '';
+    nameEl.appendChild(input);
+    input.focus();
+    input.select();
+
+    const commit = () => {
+      Departments.setCustomName(tier, input.value);
+      nameEl.textContent = Departments.getDisplayName(tier);
+    };
+
+    input.addEventListener('blur', commit, { once: true });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') input.blur();
+      if (e.key === 'Escape') {
+        input.value = tier.name; // revert to default on Escape
+        Departments.setCustomName(tier, '');
+        input.blur();
+      }
+    });
+  },
+
+  /** Update cost, owned count, button enabled state, and display name for all tiers */
   updateDepartments() {
     const items = this.els.deptList.querySelectorAll('.dept-item');
     items.forEach((el) => {
@@ -154,6 +199,11 @@ const UI = {
       el.querySelector('.dept-cost').textContent = '✦ ' + formatNumber(cost);
       el.querySelector('.dept-owned').textContent = tier.owned;
       el.querySelector('.btn-buy').disabled = Game.forms < cost;
+      // Update display name (skip if currently editing)
+      const nameEl = el.querySelector('.dept-tier-name');
+      if (!nameEl.querySelector('input')) {
+        nameEl.textContent = Departments.getDisplayName(tier);
+      }
     });
   },
 
@@ -163,6 +213,43 @@ const UI = {
       if (Upgrades.convertToDirective()) {
         this.updateStats();
       }
+    });
+  },
+
+  // --- Department name (left panel h1) renaming ---
+  bindDeptNameRename() {
+    const nameEl = document.getElementById('dept-name');
+    nameEl.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      if (nameEl.querySelector('input')) return;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'dept-rename-input';
+      input.value = nameEl.textContent;
+      input.maxLength = 40;
+
+      nameEl.textContent = '';
+      nameEl.appendChild(input);
+      input.focus();
+      input.select();
+
+      const commit = () => {
+        const val = input.value.trim();
+        const name = val || 'The Department';
+        Game.deptName = (name === 'The Department') ? undefined : name;
+        nameEl.textContent = name;
+      };
+
+      input.addEventListener('blur', commit, { once: true });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') input.blur();
+        if (e.key === 'Escape') {
+          input.value = 'The Department';
+          Game.deptName = undefined;
+          input.blur();
+        }
+      });
     });
   },
 
@@ -287,7 +374,7 @@ const UI = {
       case 'click-dept-bonus': return 'Click \u00d7(1 + 0.01 per dept owned)';
       case 'dept-mult':
         var tier = Departments.tiers.find(t => t.id === eff.target);
-        return '\u00d7' + eff.value + ' ' + (tier ? tier.name : eff.target) + ' output';
+        return '\u00d7' + eff.value + ' ' + (tier ? Departments.getDisplayName(tier) : eff.target) + ' output';
       case 'global-mult': return '\u00d7' + eff.value + ' all department output';
       case 'global-mult-if-doubled': return '+5% all output if any dept has 2+ owned';
       default: return '';

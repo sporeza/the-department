@@ -86,11 +86,17 @@ body::before {
   color: var(--ink);
   text-align: center;
   letter-spacing: 0.02em;
-  cursor: default;
-  user-select: none;
+  cursor: pointer;
   border-bottom: 2px solid var(--amber);
   padding-bottom: 8px;
   width: 100%;
+}
+
+.dept-name .dept-rename-input {
+  font-size: 1.35rem;
+  font-weight: 900;
+  text-align: center;
+  color: var(--ink);
 }
 
 /* Click Zone */
@@ -410,6 +416,26 @@ body::before {
   font-size: 0.95rem;
   color: var(--green);
   margin-bottom: 2px;
+  cursor: pointer;
+}
+
+.dept-rename-input {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--green);
+  background: #FFF;
+  border: 2px solid var(--amber);
+  border-radius: 3px;
+  padding: 2px 6px;
+  width: 100%;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(200, 134, 10, 0.25);
+}
+
+.dept-rename-input:focus {
+  border-color: var(--amber-d);
+  box-shadow: 0 0 0 3px rgba(200, 134, 10, 0.35);
 }
 
 .dept-desc {

@@ -11,6 +11,7 @@ const Game = {
   totalFormsEarned: 0,
   totalClicks: 0,
   directives: 0,
+  deptName: undefined, // custom department name (left panel title)
 
   /** Called every tick (~100ms) to accumulate passive income */
   tick(dt) {
