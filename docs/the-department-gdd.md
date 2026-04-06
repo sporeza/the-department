@@ -1,5 +1,5 @@
 # The Department
-### Game Design Document v0.2
+### Game Design Document v0.3
 
 ---
 
@@ -210,6 +210,80 @@ Runs along the bottom at all times. Mix of:
 
 ---
 
+## Random Events (Active Play Rewards)
+
+Equivalent to Cookie Clicker's Golden Cookie — time-limited events that appear on screen and reward players who are actively watching. Passive players won't be punished for missing them, but attentive players are meaningfully rewarded.
+
+Events are **not available in the very early game** — they unlock once the player owns their first Filing Cabinet, ensuring the core click mechanic is established before adding another layer of interaction.
+
+Two tiers of event, differentiated by frequency, reward scale, and visual prominence:
+
+---
+
+### Tier 1 — Common Events
+*Spawn every 2–5 minutes. Simple one-click interaction. Modest reward.*
+
+These are the background texture of active play — a small bonus for players who happen to be watching, never punishing if missed.
+
+**The Lost Form**
+A single form drifts slowly across the centre panel, as if caught in an air vent current. Click to intercept and file it. Miss it and it disappears into the system, unprocessed, forever.
+*Reward: a one-time Forms bonus equal to ~30 seconds of current income.*
+> *"Form 14(c) — origin unknown, destination unclear. It passed through. You caught it. This has been noted."*
+
+**The Urgent Memo**
+A folded memo slides in from off-panel, stamped "URGENT — ACTION REQUIRED" in red. Click before it gets buried (disappears after 20 seconds). 
+*Reward: +50% Forms/sec for 30 seconds.*
+> *"The memo was urgent. All memos are urgent. Urgency is The Department's resting state."*
+
+**The Escaped Intern**
+An intern sprite wanders across the floor plan looking lost. Click to redirect them back to their desk.
+*Reward: a small burst of Forms equal to that Intern's total output for the last 60 seconds.*
+> *"They were found. They were returned to their station. They do not speak of sublevel 4."*
+
+---
+
+### Tier 2 — Rare Events
+*Spawn every 15–30 minutes. Slightly more interaction required. Larger reward. More visually distinct.*
+
+These feel like genuine events — worth interrupting what you're doing for. The rare tier also introduces a small decision or sequence, rewarding attentive players more than a simple click.
+
+**The Visiting Inspector**
+An inspector icon appears in the floor plan, moving slowly between rooms. Click to "prepare a report" before they complete their tour and leave.
+*Reward: ×3 all department output for 60 seconds.*
+> *"The Inspector found everything satisfactory. The Inspector always finds everything satisfactory. The Inspector has never found anything unsatisfactory."*
+
+**The Policy Window**
+A "New Policy Enacted" notice appears presenting **two options** — the player must choose one before the window expires. Introduces a small active decision rather than a pure reflex click.
+
+Example option pairs:
+- *"Streamline Processing" (+Forms/sec for 90s)* vs *"Discretionary Budget" (large one-time Forms bonus)*
+- *"Mandatory Overtime" (×2 click output for 120s)* vs *"Staff Wellbeing Initiative" (all departments +25% for 60s)*
+
+> *"Policy has been enacted. Compliance is assumed. Non-compliance has not been defined and therefore cannot occur."*
+
+**The Mysterious Package**
+A brown-paper package appears in the floor plan's reception area. Click to "process through intake." The contents are unknown until opened — could be a Forms windfall, a free department purchase, a temporary multiplier, or an elaborate joke with a minor reward.
+
+Possible contents (weighted, rarer outcomes less likely):
+- *"Assorted biscuits. Morale improved briefly."* — +5% all output for 60s
+- *"Form 7B (triplicate). You already have these."* — small Forms bonus, flavour reward
+- *"An unsigned Directive."* — bonus Directives (mid-game only)
+- *"It is unclear what this is. It has been filed."* — moderate Forms bonus
+
+> *"The package arrived. No sender. No return address. Intake processed it. This is their job."*
+
+---
+
+### Visual & UX Guidelines for Events
+
+- **Tier 1 events** are subtle — they appear within the existing panels, don't interrupt gameplay, and use the existing warm palette. The Lost Form in particular should feel like you just happened to notice it.
+- **Tier 2 events** are more prominent — a soft pulse or gentle glow draws the eye without being aggressive. The Policy Window appears as a formal notice overlay, consistent with the document aesthetic.
+- **No audio stings** for Tier 1. A soft paper-shuffle sound for Tier 2 (if sound is implemented).
+- **Miss penalty**: none. The event simply disappears. The news ticker may acknowledge it with a dry line (*"A memo passed through unattended. It has been filed under 'lost causes'."*)
+- **Event history**: missed and collected events are logged in a small "Recent Events" list beneath the stats panel, purely for flavour. No mechanical consequence to reviewing it.
+
+---
+
 ## The Department Name
 
 The player's Department is simply called **"The Department"** by default. The name is displayed prominently in the left panel and can be **renamed by double-clicking it** — a small personalisation that reinforces ownership without introducing a named protagonist. There is no named clerk. The player is the institution, not a person within it.
@@ -327,6 +401,6 @@ To build a genuinely playable, portfolio-ready PoC, the minimum viable feature s
 
 ---
 
-*Document version 0.2 — design questions resolved.*
+*Document version 0.3 — random events system added.*
 *The Department reserves the right to amend this document without notice.*
 *Any amendments will be filed. Filing constitutes approval.*
