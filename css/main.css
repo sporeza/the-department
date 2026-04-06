@@ -479,6 +479,156 @@ body::before {
 }
 
 
+/* ---------- Directives Conversion Button ---------- */
+#convert-section {
+  width: 100%;
+  text-align: center;
+}
+
+.btn-convert {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 18px;
+  background: var(--amber-d);
+  color: var(--cream);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  width: 100%;
+}
+
+.btn-convert:hover:not(:disabled) {
+  background: var(--amber);
+  transform: translateY(-1px);
+}
+
+.btn-convert:disabled {
+  background: var(--cream-d);
+  color: #AAA;
+  cursor: not-allowed;
+}
+
+/* ---------- Upgrade Items ---------- */
+.upgrades-section-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  opacity: 0.5;
+  margin: 12px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--cream-d);
+}
+
+.upgrade-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--cream-d);
+}
+
+.upgrade-item:last-child {
+  border-bottom: none;
+}
+
+.upgrade-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.upgrade-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--green);
+  margin-bottom: 2px;
+}
+
+.upgrade-desc {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.75rem;
+  color: var(--ink);
+  opacity: 0.55;
+  margin-bottom: 3px;
+  line-height: 1.35;
+}
+
+.upgrade-effect {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: var(--amber-d);
+}
+
+.upgrade-buy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 65px;
+}
+
+.upgrade-cost {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--amber);
+}
+
+.btn-buy-upgrade {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  background: var(--green);
+  color: var(--cream);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-buy-upgrade:hover:not(:disabled) {
+  background: var(--green-l);
+  transform: translateY(-1px);
+}
+
+.btn-buy-upgrade:disabled {
+  background: var(--cream-d);
+  color: #AAA;
+  cursor: not-allowed;
+}
+
+.upgrade-owned .upgrade-name {
+  color: var(--ink);
+  opacity: 0.5;
+}
+
+.upgrade-owned .upgrade-desc {
+  opacity: 0.35;
+}
+
+.upgrade-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  font-size: 1.1rem;
+  color: var(--green);
+  opacity: 0.6;
+}
+
+
 /* ============================================================
    NEWS TICKER
    ============================================================ */

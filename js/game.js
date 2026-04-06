@@ -9,12 +9,14 @@ const Game = {
   formsPerClick: 1,
   formsPerSec: 0,
   totalFormsEarned: 0,
+  directives: 0,
 
   /** Called every tick (~100ms) to accumulate passive income */
   tick(dt) {
     const earned = this.formsPerSec * dt;
     this.forms += earned;
     this.totalFormsEarned += earned;
+    Upgrades.checkDirectivesUnlock();
   },
 
   /** Called on a successful stamp click */

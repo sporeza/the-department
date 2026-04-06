@@ -51,9 +51,24 @@
           <span id="forms-total" class="stat-value">0</span>
         </div>
         <div class="stat-row">
+          <span class="stat-label">Forms/click</span>
+          <span id="forms-per-click" class="stat-value">1</span>
+        </div>
+        <div class="stat-row">
           <span class="stat-label">Forms/sec</span>
           <span id="forms-per-sec" class="stat-value">0.0</span>
         </div>
+        <div class="stat-row" id="directives-row" style="display:none">
+          <span class="stat-label">Directives ◈</span>
+          <span id="directives-total" class="stat-value">0</span>
+        </div>
+      </div>
+
+      <!-- Directives Conversion (hidden until unlocked) -->
+      <div id="convert-section" style="display:none">
+        <button id="btn-convert" class="btn-convert" disabled>
+          Convert ✦ 500 → ◈ 1
+        </button>
       </div>
 
     </aside>
@@ -77,10 +92,8 @@
       <!-- Departments List (rendered by ui.js) -->
       <div id="tab-departments" class="tab-content active"></div>
 
-      <!-- Upgrades List (placeholder) -->
-      <div id="tab-upgrades" class="tab-content">
-        <p class="tab-placeholder">Upgrades will become available once Directives are unlocked.</p>
-      </div>
+      <!-- Upgrades List (rendered by ui.js) -->
+      <div id="tab-upgrades" class="tab-content"></div>
 
     </aside>
 

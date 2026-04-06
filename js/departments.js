@@ -85,15 +85,22 @@ const Departments = {
     if (Game.forms < cost) return false;
     Game.forms -= cost;
     tier.owned++;
-    this.recalcIncome();
+    Upgrades.applyEffects();   // recalculates income + click power (dept-bonus)
     return true;
+  },
+
+  /** Get number owned of a specific tier by id */
+  getOwned(id) {
+    const tier = this.tiers.find(t => t.id === id);
+    return tier ? tier.owned : 0;
   },
 
   /** Recalculate total passive Forms/sec from all departments */
   recalcIncome() {
     let total = 0;
     for (const tier of this.tiers) {
-      total += tier.baseRate * tier.owned;
+      const mult = (typeof Upgrades !== 'undefined') ? Upgrades.getDeptMultiplier(tier.id) : 1;
+      total += tier.baseRate * tier.owned * mult;
     }
     Game.formsPerSec = total;
   }

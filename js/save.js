@@ -12,14 +12,19 @@ const Save = {
   /** Serialise current game state into a JSON string */
   serialise() {
     return JSON.stringify({
-      version: 1,
+      version: 2,
       timestamp: Date.now(),
       game: {
         forms: Game.forms,
         formsPerClick: Game.formsPerClick,
-        totalFormsEarned: Game.totalFormsEarned
+        totalFormsEarned: Game.totalFormsEarned,
+        directives: Game.directives
       },
-      departments: Departments.tiers.map(t => ({ id: t.id, owned: t.owned }))
+      departments: Departments.tiers.map(t => ({ id: t.id, owned: t.owned })),
+      upgrades: {
+        purchased: Object.keys(Upgrades.purchased),
+        directivesUnlocked: Upgrades.directivesUnlocked
+      }
     });
   },
 
@@ -51,8 +56,8 @@ const Save = {
 
     // Restore game state
     Game.forms = data.game.forms || 0;
-    Game.formsPerClick = data.game.formsPerClick || 1;
     Game.totalFormsEarned = data.game.totalFormsEarned || 0;
+    Game.directives = (data.game && data.game.directives) || 0;
 
     // Restore department ownership
     if (data.departments) {
@@ -63,8 +68,17 @@ const Save = {
       });
     }
 
-    // Recalculate passive income from restored departments
-    Departments.recalcIncome();
+    // Restore upgrades
+    if (data.upgrades) {
+      Upgrades.directivesUnlocked = !!data.upgrades.directivesUnlocked;
+      Upgrades.purchased = {};
+      if (data.upgrades.purchased) {
+        data.upgrades.purchased.forEach(id => { Upgrades.purchased[id] = true; });
+      }
+    }
+
+    // Recalculate effects from restored upgrades (sets formsPerClick + dept multipliers)
+    Upgrades.applyEffects();
 
     // Offline income — award passive income for time away
     if (data.timestamp && Game.formsPerSec > 0) {

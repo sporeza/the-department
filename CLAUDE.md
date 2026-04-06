@@ -20,15 +20,20 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - localStorage save/load with auto-save (30s + beforeunload), offline income on return
 - Game loop via requestAnimationFrame with delta-time ticking
 - News ticker (static content, 6 items)
+- Upgrades system — Directives (◈) resource with manual conversion (500 Forms → 1 Directive), unlocks at first Sub-Committee + 500 total Forms
+- 5 click upgrades (Forms currency): Ballpoint Pen, Fresh Ink Pad, Carbon Copy, The In-Tray, Institutional Memory
+- 8 department multiplier upgrades (Directives currency): one per tier at own-1 milestone, each ×2 output
+- 3 passive/flavour upgrades (Directives): Redundancy Planning (+5% global), Motivational Poster (×1.001), The Memo (×1.10)
+- Upgrades tab in right panel with available/purchased sections, auto-refreshing
 
 ### What's not done yet (PoC scope)
-- Upgrades system (js/upgrades.js is still a stub) — needs Directives resource, conversion mechanic, ~15 upgrades
 - Milestone system with flavour text (20+ milestones)
-- Click upgrades (5 planned)
 - Department name renaming (double-click)
 - Prestige / Restructuring mechanic
 - News ticker dynamic content (milestone-reactive, 30+ lines)
 - Floor plan hover for per-department stats
+- Synergy upgrades
+- Additional department multiplier tiers (10/25/50/100 ownership milestones)
 
 ## Tech Stack & File Structure
 
@@ -37,14 +42,14 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - `css/floorplan.css` — floor plan rooms, corridors, liminal spaces, ambient glow
 - `js/game.js` — Game object (state + tick), requestAnimationFrame loop, DOMContentLoaded init orchestration
 - `js/departments.js` — Departments object with 8 tier definitions, cost scaling, buy logic, income recalculation
-- `js/upgrades.js` — (stub) upgrade definitions, unlock conditions
+- `js/upgrades.js` — Upgrades object: 16 upgrade definitions (click/dept-mult/passive/flavour), Directives unlock/conversion, purchase logic, effect calculation
 - `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, tab switching
 - `js/floorplan.js` — FloorPlan object: dynamic room/corridor/liminal-space rendering, organic growth, snapshot-diffing to skip unchanged frames
 - `js/save.js` — Save object: serialise/deserialise, localStorage persistence, auto-save interval, offline income calculation
 
 ## Architecture Notes
 
-- All game objects (`Game`, `Departments`, `UI`, `FloorPlan`, `Save`) are plain object literals on `window` — no modules, no classes, no build step.
+- All game objects (`Game`, `Departments`, `Upgrades`, `UI`, `FloorPlan`, `Save`) are plain object literals on `window` — no modules, no classes, no build step.
 - Script load order matters: `game.js` → `departments.js` → `upgrades.js` → `ui.js` → `floorplan.js` → `save.js`. Init sequence in DOMContentLoaded: `Save.load()` → `UI.init()` → `FloorPlan.init()` → `Save.startAutoSave()` → game loop.
 - Department list in the right panel is rendered dynamically from `Departments.tiers` — no hardcoded HTML for shop items.
 - Floor plan rooms are positioned with hand-tuned percentage coordinates. Corridors are calculated as pixel lines between room centres each update.
