@@ -29,11 +29,13 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 
 ### What's not done yet (PoC scope)
 - Department name renaming (double-click)
+- Random events (just The Lost Form and The Visiting Inspector as proof of concept)
 - Prestige / Restructuring mechanic
 - News ticker dynamic content beyond milestones (30+ static lines)
 - Floor plan hover for per-department stats
 - Synergy upgrades
 - Additional department multiplier tiers (10/25/50/100 ownership milestones)
+- Additional random events.
 
 ## Tech Stack & File Structure
 
