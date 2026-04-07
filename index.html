@@ -76,10 +76,25 @@
 
     </aside>
 
-    <!-- CENTRE PANEL: Office Floor Plan -->
+    <!-- CENTRE PANEL: Tabbed admin views (Floor Plan default) -->
     <main id="panel-centre" class="panel">
-      <div id="floor-plan">
-        <!-- Rooms and corridors rendered dynamically by floorplan.js -->
+      <div id="centre-tabs">
+        <button class="centre-tab active" data-centre-tab="floorplan">The Floor Plan</button>
+        <button class="centre-tab" data-centre-tab="registry">The Registry</button>
+        <button class="centre-tab" data-centre-tab="honours">Honours Board</button>
+        <button class="centre-tab locked" data-centre-tab="restructuring" disabled title="Locked — purchase 'The Reorganisation' to unlock">Restructuring</button>
+        <button class="centre-tab" data-centre-tab="operations">Operations</button>
+      </div>
+      <div id="centre-views">
+        <div id="centre-view-floorplan" class="centre-view active">
+          <div id="floor-plan">
+            <!-- Rooms and corridors rendered dynamically by floorplan.js -->
+          </div>
+        </div>
+        <div id="centre-view-registry" class="centre-view"></div>
+        <div id="centre-view-honours" class="centre-view"></div>
+        <div id="centre-view-restructuring" class="centre-view"></div>
+        <div id="centre-view-operations" class="centre-view"></div>
       </div>
     </main>
 

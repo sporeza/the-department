@@ -8,6 +8,7 @@ const Save = {
   KEY: 'the-department-save',
   AUTO_SAVE_MS: 30000, // auto-save every 30 seconds
   _intervalId: null,
+  lastSavedAt: null, // timestamp of most recent successful save
 
   /** Serialise current game state into a JSON string */
   serialise() {
@@ -33,13 +34,39 @@ const Save = {
     });
   },
 
-  /** Save to localStorage */
+  /** Save to localStorage. Returns true on success. */
   save() {
     try {
       localStorage.setItem(this.KEY, this.serialise());
+      this.lastSavedAt = Date.now();
+      return true;
     } catch (e) {
       // Storage full or unavailable — fail silently
+      return false;
     }
+  },
+
+  /** Return the current save state as a JSON string (for export). */
+  exportString() {
+    return this.serialise();
+  },
+
+  /** Validate and write an imported save string. Returns true on success. */
+  importString(str) {
+    if (typeof str !== 'string' || !str.trim()) return false;
+    try {
+      const parsed = JSON.parse(str);
+      if (!parsed || typeof parsed !== 'object' || !parsed.game) return false;
+      localStorage.setItem(this.KEY, str);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  /** Wipe all save data from localStorage. */
+  wipeAll() {
+    this.reset();
   },
 
   /** Load from localStorage. Returns true if a save was restored. */

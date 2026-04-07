@@ -80,7 +80,10 @@ const RandomEvents = {
 
   // --- Initialisation ---
   init: function () {
-    this._container = document.getElementById('panel-centre');
+    // Spawn into the floor plan view so events sit inside the office area
+    // and are naturally hidden when another centre tab is active.
+    this._container = document.getElementById('centre-view-floorplan')
+      || document.getElementById('panel-centre');
     this._buffContainer = document.getElementById('active-buffs');
 
     // If restoring a saved active event, re-spawn its DOM

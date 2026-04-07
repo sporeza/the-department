@@ -394,6 +394,327 @@ const UI = {
   }
 };
 
+// ============================================================
+// CentreTabs — controller for the centre panel tab bar.
+// Floor Plan is the default; other tabs swap in admin views.
+// ============================================================
+const CentreTabs = {
+  active: 'floorplan',
+  _views: {},
+  _tabs: {},
+
+  init() {
+    document.querySelectorAll('.centre-tab').forEach(tab => {
+      const id = tab.dataset.centreTab;
+      this._tabs[id] = tab;
+      if (tab.classList.contains('locked') || tab.disabled) return;
+      tab.addEventListener('click', () => this.switchTo(id));
+    });
+    document.querySelectorAll('.centre-view').forEach(view => {
+      const id = view.id.replace('centre-view-', '');
+      this._views[id] = view;
+    });
+
+    // Render static / one-time content
+    this.renderHonours();
+    this.renderRestructuring();
+    this.renderOperations();
+    this.renderRegistry();
+  },
+
+  switchTo(id) {
+    if (!this._views[id]) return;
+    this.active = id;
+    Object.keys(this._tabs).forEach(k => this._tabs[k].classList.toggle('active', k === id));
+    Object.keys(this._views).forEach(k => this._views[k].classList.toggle('active', k === id));
+
+    // Refresh dynamic views on switch
+    if (id === 'registry') this.renderRegistry();
+    if (id === 'honours') this.renderHonours();
+    if (id === 'operations') this.refreshOperationsStatus();
+  },
+
+  /** Called from the game loop — only does work when a live view is visible. */
+  tickActive() {
+    if (this.active === 'registry') this.renderRegistry();
+  },
+
+  // ---------- Registry (Stats) ----------
+  renderRegistry() {
+    const view = this._views.registry;
+    if (!view) return;
+
+    const totalDepts = Departments.tiers.reduce((s, t) => s + t.owned, 0);
+    const ownedTiers = Departments.tiers.filter(t => t.owned > 0).length;
+    const upgradesPurchased = Object.keys(Upgrades.purchased || {}).length;
+    const milestonesEarned = Object.keys(Milestones.triggered || {}).length;
+    const milestonesTotal = (Milestones.definitions || []).length;
+
+    let eventsCaught = 0, eventsMissed = 0, activeBuffs = 0;
+    if (typeof RandomEvents !== 'undefined') {
+      eventsCaught = RandomEvents.caughtCount || 0;
+      eventsMissed = RandomEvents.missedCount || 0;
+      activeBuffs = (RandomEvents.buffs || []).length;
+    }
+
+    const rows = (pairs) => pairs.map(([l, v]) =>
+      '<div class="registry-row"><span class="registry-label">' + l +
+      '</span><span class="registry-value">' + v + '</span></div>'
+    ).join('');
+
+    const lifetime = rows([
+      ['Total Forms filed', formatNumber(Game.totalFormsEarned)],
+      ['Total clicks approved', formatNumber(Game.totalClicks)],
+      ['Milestones earned', milestonesEarned + ' / ' + milestonesTotal],
+      ['Random events caught', formatNumber(eventsCaught)],
+      ['Random events missed', formatNumber(eventsMissed)],
+      ['Restructurings survived', '0']
+    ]);
+
+    const tierRows = Departments.tiers.map(t =>
+      '<div class="registry-row"><span class="registry-label">&nbsp;&nbsp;' +
+      Departments.getDisplayName(t) + '</span><span class="registry-value">' +
+      t.owned + '</span></div>'
+    ).join('');
+
+    const current = rows([
+      ['Forms on hand', formatNumber(Game.forms)],
+      ['Forms / sec', formatNumber(Game.formsPerSec, 1)],
+      ['Forms / click', formatNumber(Game.formsPerClick, Game.formsPerClick % 1 !== 0 ? 1 : undefined)],
+      ['Directives held', Upgrades.directivesUnlocked ? formatNumber(Game.directives) : '—'],
+      ['Departments owned', formatNumber(totalDepts)],
+      ['Department tiers active', ownedTiers + ' / ' + Departments.tiers.length],
+      ['Upgrades purchased', formatNumber(upgradesPurchased)],
+      ['Active buffs', formatNumber(activeBuffs)]
+    ]) + '<div class="registry-row" style="margin-top:8px"><span class="registry-label"><em>By tier:</em></span><span class="registry-value"></span></div>' + tierRows;
+
+    view.innerHTML =
+      '<div class="admin-view">' +
+        '<h2 class="admin-view-header">The Registry</h2>' +
+        '<p class="admin-view-flavour">The following records are accurate as of the time of filing. The time of filing is not disclosed.</p>' +
+        '<div class="registry-grid">' +
+          '<div class="registry-column"><h3>Lifetime</h3>' + lifetime + '</div>' +
+          '<div class="registry-column"><h3>Current Run</h3>' + current + '</div>' +
+        '</div>' +
+      '</div>';
+  },
+
+  // ---------- Honours Board (Achievements) ----------
+  renderHonours() {
+    const view = this._views.honours;
+    if (!view) return;
+
+    const defs = Milestones.definitions || [];
+    const earnedCount = defs.filter(m => Milestones.triggered[m.id]).length;
+
+    const cards = defs.map(m => {
+      const earned = !!Milestones.triggered[m.id];
+      if (earned) {
+        return '<div class="honour-card earned">' +
+          '<div class="honour-stamp">Commendation Filed</div>' +
+          '<div class="honour-name">' + m.name + '</div>' +
+          '<div class="honour-text">' + m.text + '</div>' +
+        '</div>';
+      }
+      return '<div class="honour-card locked">' +
+        '<div class="honour-stamp">[Classified]</div>' +
+        '<div class="honour-name">[REDACTED]</div>' +
+        '<div class="honour-text">Awarded for conduct relating to [REDACTED].</div>' +
+      '</div>';
+    }).join('');
+
+    view.innerHTML =
+      '<div class="admin-view">' +
+        '<h2 class="admin-view-header">The Honours Board</h2>' +
+        '<p class="admin-view-flavour">Commendations awarded by The Department, to The Department, on behalf of The Department.</p>' +
+        '<div class="honours-summary">' + earnedCount + ' of ' + defs.length + ' commendations on file</div>' +
+        '<div class="honours-grid">' + cards + '</div>' +
+      '</div>';
+  },
+
+  // ---------- Restructuring (locked stub) ----------
+  renderRestructuring() {
+    const view = this._views.restructuring;
+    if (!view) return;
+    view.innerHTML =
+      '<div class="admin-view">' +
+        '<h2 class="admin-view-header">Restructuring</h2>' +
+        '<p class="admin-view-flavour">Standard Procedure 7(b) — Reorganisation Authority Required</p>' +
+        '<div class="restructuring-stub">' +
+          '<div class="restructuring-stub-stamp">Authority Pending</div>' +
+          '<p class="restructuring-stub-text">' +
+            'Restructuring procedures are not yet authorised. The directive titled <em>"The Reorganisation"</em> has not been filed. Until such time as the requisite paperwork is processed, The Department will continue in its present configuration. The Department will continue regardless.' +
+          '</p>' +
+        '</div>' +
+      '</div>';
+  },
+
+  // ---------- Operations (Save / Options) ----------
+  renderOperations() {
+    const view = this._views.operations;
+    if (!view) return;
+
+    view.innerHTML =
+      '<div class="admin-view">' +
+        '<h2 class="admin-view-header">Operations</h2>' +
+        '<p class="admin-view-flavour">Administrative procedures. Authorisation is assumed.</p>' +
+
+        '<div class="operations-section">' +
+          '<h3 class="operations-section-title">Save &amp; Data</h3>' +
+
+          '<div class="ops-action">' +
+            '<div class="ops-action-info">' +
+              '<div class="ops-action-label">File Current State</div>' +
+              '<div class="ops-action-desc">Commit the current Department state to local storage.</div>' +
+            '</div>' +
+            '<button class="btn-ops" data-ops="save">File Now</button>' +
+          '</div>' +
+          '<div class="ops-status" data-ops-status="save"></div>' +
+
+          '<div class="ops-action">' +
+            '<div class="ops-action-info">' +
+              '<div class="ops-action-label">Submit to Archive</div>' +
+              '<div class="ops-action-desc">Export the current save as a transferable string.</div>' +
+            '</div>' +
+            '<button class="btn-ops" data-ops="export">Export</button>' +
+          '</div>' +
+          '<textarea class="ops-textarea" data-ops="export-text" readonly placeholder="Exported save will appear here…"></textarea>' +
+          '<div class="ops-status" data-ops-status="export"></div>' +
+
+          '<div class="ops-action">' +
+            '<div class="ops-action-info">' +
+              '<div class="ops-action-label">Retrieve from Archive</div>' +
+              '<div class="ops-action-desc">Paste a previously exported save string and import it. The page will reload.</div>' +
+            '</div>' +
+            '<button class="btn-ops" data-ops="import">Import</button>' +
+          '</div>' +
+          '<textarea class="ops-textarea" data-ops="import-text" placeholder="Paste an exported save string here…"></textarea>' +
+          '<div class="ops-status" data-ops-status="import"></div>' +
+
+          '<div class="ops-action">' +
+            '<div class="ops-action-info">' +
+              '<div class="ops-action-label">Initiate Total Dissolution</div>' +
+              '<div class="ops-action-desc">Type <strong>CONFIRMED</strong> to dissolve The Department completely. This action cannot be reversed. Proceed only if authorised.</div>' +
+            '</div>' +
+            '<div>' +
+              '<input class="ops-input" type="text" data-ops="wipe-confirm" placeholder="CONFIRMED" />' +
+              '<button class="btn-ops danger" data-ops="wipe">Dissolve</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="ops-status" data-ops-status="wipe"></div>' +
+        '</div>' +
+
+        '<div class="operations-section">' +
+          '<h3 class="operations-section-title">Options</h3>' +
+
+          '<div class="ops-action">' +
+            '<div class="ops-action-info">' +
+              '<div class="ops-action-label">Offline Income</div>' +
+              '<div class="ops-action-desc">Continue earning Forms while the tab is closed.</div>' +
+            '</div>' +
+            '<label><input type="checkbox" disabled checked /> Enabled</label>' +
+          '</div>' +
+
+          '<div class="ops-action">' +
+            '<div class="ops-action-info">' +
+              '<div class="ops-action-label">News Ticker Speed</div>' +
+              '<div class="ops-action-desc">Pace at which the ticker scrolls.</div>' +
+            '</div>' +
+            '<select class="ops-input" disabled><option>Slow</option><option selected>Normal</option><option>Fast</option></select>' +
+          '</div>' +
+
+          '<div class="ops-action">' +
+            '<div class="ops-action-info">' +
+              '<div class="ops-action-label">Reduced Motion</div>' +
+              '<div class="ops-action-desc">Disables non-essential animations.</div>' +
+            '</div>' +
+            '<label><input type="checkbox" disabled /> Enabled</label>' +
+          '</div>' +
+
+          '<div class="ops-action">' +
+            '<div class="ops-action-info">' +
+              '<div class="ops-action-label">Number Formatting</div>' +
+              '<div class="ops-action-desc">How large numbers are displayed throughout The Department.</div>' +
+            '</div>' +
+            '<select class="ops-input" disabled><option>Full</option><option selected>Abbreviated</option><option>Scientific</option></select>' +
+          '</div>' +
+
+          '<p class="ops-options-note">Pending implementation. Plumbing has been filed.</p>' +
+        '</div>' +
+      '</div>';
+
+    this.bindOperations();
+  },
+
+  bindOperations() {
+    const view = this._views.operations;
+    if (!view) return;
+
+    const setStatus = (key, msg, isError) => {
+      const el = view.querySelector('[data-ops-status="' + key + '"]');
+      if (!el) return;
+      el.textContent = msg || '';
+      el.classList.toggle('error', !!isError);
+    };
+
+    view.querySelector('[data-ops="save"]').addEventListener('click', () => {
+      const ok = Save.save();
+      if (ok) {
+        const t = new Date(Save.lastSavedAt || Date.now());
+        const hh = String(t.getHours()).padStart(2, '0');
+        const mm = String(t.getMinutes()).padStart(2, '0');
+        const ss = String(t.getSeconds()).padStart(2, '0');
+        setStatus('save', 'Filed at ' + hh + ':' + mm + ':' + ss + '.');
+      } else {
+        setStatus('save', 'Filing failed. Storage unavailable.', true);
+      }
+    });
+
+    view.querySelector('[data-ops="export"]').addEventListener('click', () => {
+      const str = Save.exportString();
+      const ta = view.querySelector('[data-ops="export-text"]');
+      ta.value = str;
+      ta.select();
+      let copied = false;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(str);
+          copied = true;
+        }
+      } catch (e) { /* ignore */ }
+      setStatus('export', copied
+        ? 'Archive prepared and copied to clipboard.'
+        : 'Archive prepared. Copy the text above to retain it.');
+    });
+
+    view.querySelector('[data-ops="import"]').addEventListener('click', () => {
+      const ta = view.querySelector('[data-ops="import-text"]');
+      const ok = Save.importString(ta.value);
+      if (ok) {
+        setStatus('import', 'Archive accepted. Reloading…');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        setStatus('import', 'Submission rejected. The string is not a valid Departmental record.', true);
+      }
+    });
+
+    view.querySelector('[data-ops="wipe"]').addEventListener('click', () => {
+      const input = view.querySelector('[data-ops="wipe-confirm"]');
+      if ((input.value || '').trim() !== 'CONFIRMED') {
+        setStatus('wipe', 'Type CONFIRMED to authorise dissolution.', true);
+        return;
+      }
+      Save.wipeAll();
+      setStatus('wipe', 'Dissolution complete. The Department will continue.');
+      setTimeout(() => location.reload(), 600);
+    });
+  },
+
+  refreshOperationsStatus() {
+    // Reserved for future per-open updates (e.g., last saved time).
+  }
+};
+
 // --- Helpers ---
 function formatNumber(n, decimals) {
   if (typeof decimals === 'number') {
