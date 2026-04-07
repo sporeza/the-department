@@ -33,6 +33,7 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Buff system — temporary multiplier buffs from events, ticking countdown, buff UI indicator below stats, integrated into Departments.recalcIncome(), persisted in save with offline decay
 
 ### What's not done yet (PoC scope)
+- Add UI change to implement dual-purpose center pane with tabs
 - Prestige / Restructuring mechanic
 - News ticker dynamic content beyond milestones (30+ static lines)
 - Floor plan hover for per-department stats

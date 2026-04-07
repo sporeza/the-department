@@ -1,5 +1,5 @@
 # The Department
-### Game Design Document v0.3
+### Game Design Document v0.4
 
 ---
 
@@ -335,7 +335,7 @@ Purchased once with Precedents, persist forever. These are the late-game metagam
 ### Layout
 Three-panel layout, similar to Cookie Clicker:
 - **Left panel**: The "click zone" — a large APPROVE rubber stamp above a form box, centred and prominent. Below it: stats display (Forms total, Forms/sec, and once unlocked, Directives balance + conversion button). The Department's name displayed here, double-clickable to rename.
-- **Centre panel**: The **Office Floor Plan** — a living, organic map of the Department that grows as departments are purchased. Warm sepia/amber tones, slightly textured paper aesthetic. Department count badges on each room. Future: hover for per-department stats.
+- **Centre panel**: Dual-purpose. **Default view: the Office Floor Plan** — a living, organic map of the Department. When a tab is selected from the tab bar at the top of the panel, the floor plan is replaced by the corresponding admin view (Registry, Honours Board, Restructuring, or Operations). Clicking back to the floor plan tab restores the visual. The tab bar is always visible at the top of the centre panel regardless of which view is active.
 - **Right panel**: Department list (purchase), with a tab switch to the Upgrade shop once Directives are unlocked.
 
 ### Aesthetic
@@ -360,7 +360,106 @@ The floor plan is a **visual supplement** to the department list in the right pa
 
 ---
 
-## Scope Definition for PoC
+## Centre Panel Tabs
+
+The centre panel hosts a persistent tab bar across the top. The **Floor Plan tab is the default** and the one players will spend most time on. The other four tabs replace the floor plan with a full-panel admin view when selected. All tabs are always visible in the bar; the Restructuring tab is greyed out and locked until "The Reorganisation" upgrade is purchased.
+
+---
+
+### Tab 1 — **The Floor Plan** *(default)*
+The living office visual. See *The Floor Plan* section above. This is the ambient, atmospheric home screen of the game — the view you return to after checking stats or filing a save.
+
+---
+
+### Tab 2 — **The Registry** *(Stats)*
+
+All measurable facts about The Department, formatted as an official internal ledger. Two columns: all-time lifetime stats and current-run stats (resets on Restructuring).
+
+**Lifetime stats:**
+- Total Forms filed
+- Total Directives converted
+- Total Restructurings survived
+- Total Precedents earned (all-time)
+- All-time peak Forms/sec
+- Total random events caught / missed
+- Total achievements earned
+- Time The Department has existed
+
+**Current run stats:**
+- Forms filed this run
+- Departments owned (total and by tier)
+- Upgrades purchased
+- Time since last Restructuring
+- Precedents held (current)
+- Projected Precedents on next Restructuring
+
+Flavour header: *"The following records are accurate as of the time of filing. The time of filing is not disclosed."*
+
+---
+
+### Tab 3 — **The Honours Board** *(Achievements)*
+
+Earned achievements displayed as framed certificates or stamped commendations — warm, slightly pompous, bureaucratically formal. Two states:
+
+- **Earned**: Displayed in full with title, description, and date earned. Formatted like a certificate of commendation.
+- **Locked**: Shown as a redacted document — title replaced with a black bar, description partially visible as a vague hint only. *"[REDACTED] — Awarded for conduct relating to [REDACTED]."*
+
+This makes the achievements panel itself a discovery mechanic — players can see there are more certificates to earn without knowing exactly what they are.
+
+Example achievements:
+- *"Oriented" — Hired your first Intern. They will be fine.*
+- *"The Procedure Is The Procedure" — Purchased The Procedure for the first time.*
+- *"Efficiency, Noted" — Reached 100 Forms/sec.*
+- *"Restructured, Unchanged" — Completed your first Restructuring.*
+- *"Sublevel 4" — Missed 10 Escaped Intern events. They are still down there.*
+- *"The Eternal Bureaucrat" — Survived 10 Restructurings.*
+
+---
+
+### Tab 4 — **Restructuring** *(Prestige — locked until mid-game)*
+
+Locked and greyed out until the player purchases "The Reorganisation" upgrade. Once unlocked, displays:
+
+- Current Precedents balance
+- Precedents that would be earned by restructuring now (live calculation, updates as Forms accumulate)
+- A summary of what will be lost (everything) and what will be retained (Precedents, Precedent upgrades)
+- The **RESTRUCTURE** button — styled as a large, serious stamp marked "FOR OFFICIAL USE ONLY", requiring a confirmation click
+
+The panel itself is formatted as an official restructuring notice, deadpan and corporate throughout. No warnings, no drama — just procedure.
+
+> *"Initiating a Restructuring will dissolve all current departments, forms, and directives. This action is in accordance with Standard Procedure 7(b). The Department will continue."*
+
+---
+
+### Tab 5 — **Operations** *(Save / Options)*
+
+Administrative functions, framed as operational procedures. Clean and functional — this is the settings panel, so clarity beats atmosphere here, though the language stays in-universe.
+
+**Save & Data:**
+- **File Current State** — manual save to localStorage (with timestamp of last save shown)
+- **Submit to Archive** — export save as a text string (for backup or sharing)
+- **Retrieve from Archive** — import save from a text string
+- **Initiate Total Dissolution** — wipe save entirely. Requires typing "CONFIRMED" into a field. Flavour: *"This action will dissolve The Department completely. It will be as if it never existed. Proceed only if authorised."*
+
+**Options:**
+- Offline income: on / off
+- News ticker speed: slow / normal / fast
+- Reduced motion: on / off (disables non-essential animations)
+- Number formatting: full numbers / abbreviated (1.2M) / scientific notation
+
+---
+
+### Centre Panel Tab — PoC Scope
+
+For the PoC, implement all five tabs with the following priority:
+
+| Tab | PoC Status |
+|---|---|
+| Floor Plan | Must Have |
+| The Registry | Must Have — even stub stats establish the voice |
+| Operations | Must Have — save/load is in the must-have list |
+| Honours Board | Should Have |
+| Restructuring | Should Have (gated behind upgrade anyway) |
 
 To build a genuinely playable, portfolio-ready PoC, the minimum viable feature set is:
 
@@ -397,10 +496,10 @@ To build a genuinely playable, portfolio-ready PoC, the minimum viable feature s
 | **Floor plan role** | Supplements the right-panel purchase list. Visual + count badges only. Not clickable for purchasing. Future: hover/tap for per-department stats. |
 | **Named protagonist** | None. The player is The Department. Default name "The Department", double-click anywhere on the name to rename. |
 | **Restructuring tone** | Sombre, corporate, deadpan. No fourth-wall breaks. Language of internal memos throughout. |
-| **Directives pacing** | Single-currency (Forms only) for early game. Directives unlocked at first Sub-Committee purchase + Forms threshold. Converted manually via a dedicated button at a fixed, visible exchange rate. |
+| **Centre panel admin** | Five tabs in the centre panel tab bar. Floor Plan is default. Other tabs (Registry, Honours Board, Restructuring, Operations) replace the floor plan when active. Restructuring tab locked until "The Reorganisation" upgrade purchased. |
 
 ---
 
-*Document version 0.3 — random events system added.*
+*Document version 0.4 — centre panel tabs and admin system added.*
 *The Department reserves the right to amend this document without notice.*
 *Any amendments will be filed. Filing constitutes approval.*
