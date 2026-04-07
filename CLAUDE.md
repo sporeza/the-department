@@ -40,6 +40,7 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 ### What's not done yet (PoC scope)
 - Prestige / Restructuring mechanic (and "The Reorganisation" upgrade that gates the Restructuring tab content)
 - Operations → Options plumbing (offline income toggle, news ticker speed, reduced motion, number formatting) — UI is currently a visual stub, none of the toggles are wired up
+- Operations → Registry plumbing (tracking all the metrics: random events tracking, restructuing tracking)
 - News ticker dynamic content beyond milestones (30+ static lines)
 - Floor plan hover for per-department stats
 - Synergy upgrades
