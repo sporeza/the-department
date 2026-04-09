@@ -14,7 +14,7 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 
 ### What's done
 - Click mechanic — APPROVE stamp with hit/miss detection (stamp-size-aware), animations (press, shake, imprint, floating text)
-- All 8 department tiers with ~1.15× cost scaling and passive Forms/sec
+- 9 department tiers (8 base + The Jurisdiction hidden until Precedent of Scale upgrade) with ~1.15× cost scaling and passive Forms/sec
 - Department shop dynamically rendered from data, buy buttons auto-enable/disable each frame
 - Organic floor plan — rooms inflate on first purchase, grow with ownership, mycelium corridors connect them, liminal spaces appear at thresholds
 - localStorage save/load with auto-save (30s + beforeunload), offline income on return
@@ -24,6 +24,7 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - 5 click upgrades (Forms currency): Ballpoint Pen, Fresh Ink Pad, Carbon Copy, The In-Tray, Institutional Memory
 - 8 department multiplier upgrades (Directives currency): one per tier at own-1 milestone, each ×2 output
 - 3 passive/flavour upgrades (Directives): Redundancy Planning (+5% global), Motivational Poster (×1.001), The Memo (×1.10)
+- "The Reorganisation" upgrade (150 Directives, unlocks at Oversight Body ≥1) — gates the Restructuring prestige mechanic
 - Upgrades tab in right panel with available/purchased sections, auto-refreshing
 - Milestone system — 33 milestones across 6 categories (Forms earned, first dept purchases, dept quantities, Forms/sec, clicks, total depts, Directives), toast notifications, ticker integration, persisted in save
 - Department renaming — double-click "The Department" title (left panel) or any tier name (right panel) for inline rename, persisted in save
@@ -34,13 +35,18 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Centre panel tab system — five tabs (Floor Plan, Registry, Honours Board, Restructuring, Operations); selecting a non-default tab swaps the floor plan for an admin view, tab bar always visible
 - Registry tab — two-column ledger of lifetime + current run stats, refreshes live while visible
 - Honours Board tab — milestones rendered as commendation cards; locked ones shown as redacted certificates
-- Restructuring tab — locked stub placeholder (gated until "The Reorganisation" upgrade exists)
+- Restructuring tab — locked until "The Reorganisation" purchased; shows live Precedent projections, dissolved/retained summary, Initiate button
+- Prestige / Restructuring mechanic — Cookie Clicker-style ascension phase: initiating a Restructuring resets Forms/Directives/departments/upgrades, awards Precedents (⌖) based on `floor(sqrt(runFormsEarned / 1M))`, enters a full-screen phase overlay where the player can spend Precedents on permanent upgrades before clicking "Begin Next Cycle"
+- 5 Precedent upgrades (persist forever): Institutional Memory (1⌖, start with 1 Intern), Continuity of Operations (5⌖, retain 5% Forms), Established Procedure (10⌖, click ×3), Precedent of Scale (25⌖, unlock 9th tier The Jurisdiction), The Eternal Mandate (100⌖, all depts ×2)
+- Precedent multiplier — each Precedent gives permanent +1% compounding to all Form generation (click + passive)
+- Ceremonial overlay — 3.5s deadpan quote card on Restructuring, then fades to reveal the phase screen
+- Game loop gated by `Game.phase` ('running' | 'restructuring') — all ticking stops during the phase
+- Precedents ⌖ stat row in left panel (visible after first Restructuring)
 - Operations tab — manual save (File Current State), export save string (Submit to Archive), import save string (Retrieve from Archive), wipe save with CONFIRMED prompt (Initiate Total Dissolution); Options sub-section is a non-functional visual stub
 
 ### What's not done yet (PoC scope)
-- Prestige / Restructuring mechanic (and "The Reorganisation" upgrade that gates the Restructuring tab content)
 - Operations → Options plumbing (offline income toggle, news ticker speed, reduced motion, number formatting) — UI is currently a visual stub, none of the toggles are wired up
-- Operations → Registry plumbing (tracking all the metrics: random events tracking, restructuing tracking)
+- Operations → Registry plumbing (tracking all the metrics: random events tracking, restructuring tracking)
 - News ticker dynamic content beyond milestones (30+ static lines)
 - Floor plan hover for per-department stats
 - Synergy upgrades
@@ -53,18 +59,20 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - `css/main.css` — layout, panels, stamp animations, form box, stats, shop, ticker
 - `css/floorplan.css` — floor plan rooms, corridors, liminal spaces, ambient glow
 - `js/game.js` — Game object (state + tick), requestAnimationFrame loop, DOMContentLoaded init orchestration
-- `js/departments.js` — Departments object with 8 tier definitions, cost scaling, buy logic, income recalculation
-- `js/upgrades.js` — Upgrades object: 16 upgrade definitions (click/dept-mult/passive/flavour), Directives unlock/conversion, purchase logic, effect calculation
+- `js/departments.js` — Departments object with 9 tier definitions (8 base + hidden Jurisdiction), cost scaling, buy logic, income recalculation
+- `js/upgrades.js` — Upgrades object: 17 upgrade definitions (click/dept-mult/passive/flavour/prestige-unlock), Directives unlock/conversion, purchase logic, effect calculation
 - `js/milestones.js` — Milestones object: 33 milestone definitions, condition checking, toast notifications, ticker injection, save/restore
 - `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, right-panel tab switching, department renaming. Also hosts `CentreTabs` controller (centre panel tab bar + Registry/Honours/Restructuring/Operations view rendering and Save/Data actions)
 - `js/floorplan.js` — FloorPlan object: dynamic room/corridor/liminal-space rendering, organic growth, snapshot-diffing to skip unchanged frames
 - `js/events.js` — RandomEvents object: two-tier spawn timers, event definitions (Lost Form, Visiting Inspector), spawn/catch/miss logic, buff system, buff UI, save/restore
+- `js/restructuring.js` — Restructuring object: prestige system, Precedent upgrade definitions (5), phase screen overlay, ceremonial overlay, perform/endPhase/enterPhaseFromLoad lifecycle, buy/afford helpers
 - `js/save.js` — Save object: serialise/deserialise, localStorage persistence, auto-save interval, offline income calculation
 
 ## Architecture Notes
 
-- All game objects (`Game`, `Departments`, `Upgrades`, `Milestones`, `UI`, `FloorPlan`, `RandomEvents`, `Save`) are plain object literals on `window` — no modules, no classes, no build step.
-- Script load order matters: `game.js` → `departments.js` → `upgrades.js` → `milestones.js` → `ui.js` → `floorplan.js` → `events.js` → `save.js`. Init sequence in DOMContentLoaded: `Save.load()` → `UI.init()` → `FloorPlan.init()` → `CentreTabs.init()` → `RandomEvents.init()` → `Save.startAutoSave()` → game loop.
+- All game objects (`Game`, `Departments`, `Upgrades`, `Milestones`, `UI`, `FloorPlan`, `RandomEvents`, `Restructuring`, `Save`, `CentreTabs`) are plain object literals on `window` — no modules, no classes, no build step.
+- Script load order matters: `game.js` → `departments.js` → `upgrades.js` → `milestones.js` → `ui.js` → `floorplan.js` → `events.js` → `restructuring.js` → `save.js`. Init sequence in DOMContentLoaded: `Save.load()` → `UI.init()` → `FloorPlan.init()` → `CentreTabs.init()` → `RandomEvents.init()` → `Save.startAutoSave()` → phase-screen check → game loop.
+- `Game.phase` ('running' | 'restructuring') gates the main game loop. During `'restructuring'`, the full-screen phase overlay is active and all game ticking is paused.
 - Department list in the right panel is rendered dynamically from `Departments.tiers` — no hardcoded HTML for shop items.
 - Floor plan rooms are positioned with hand-tuned percentage coordinates. Corridors are calculated as pixel lines between room centres each update.
 - Hit detection for stamp clicks shrinks the valid target by half the stamp's dimensions on each side, so the stamp visual must be mostly inside the form box to count as a hit.
@@ -74,9 +82,9 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 
 - **Click action**: "APPROVE" rubber stamp onto a form box. Clean stamps generate Forms; mis-stamps (outside box) trigger rejection animation, no reward. Hit area stays generous.
 - **Resources**: Forms (✦, primary), Directives (◈, mid-game manual conversion from Forms), Precedents (⌖, prestige meta-currency).
-- **Departments**: 8 tiers (Intern → The Mandate), each with exponential cost scaling (~1.15×) and passive Forms/sec generation.
-- **Upgrades**: Department multipliers (at ownership milestones 1/10/25/50/100), synergy upgrades, passive behaviour changes, flavour/comedy upgrades. Purchased with Directives.
-- **Prestige ("Restructuring")**: Resets Forms/Directives/departments; retains Precedents. Each Precedent gives permanent +1% multiplier. Formula: `floor(sqrt(Forms / 1,000,000))`.
+- **Departments**: 9 tiers (Intern → The Mandate + hidden The Jurisdiction), each with exponential cost scaling (~1.15×) and passive Forms/sec generation. The Jurisdiction unlocked by Precedent of Scale.
+- **Upgrades**: Department multipliers (at ownership milestones 1/10/25/50/100), synergy upgrades, passive behaviour changes, flavour/comedy upgrades. Purchased with Directives. "The Reorganisation" (150◈) gates the prestige system.
+- **Prestige ("Restructuring")**: Full ascension-phase system. Resets Forms/Directives/departments/upgrades; awards Precedents based on `floor(sqrt(runFormsEarned / 1,000,000))`. Enters a full-screen phase overlay where the player spends Precedents on 5 permanent upgrades before starting the next cycle. Each Precedent also gives permanent +1% compounding multiplier.
 
 ## Visual Design
 

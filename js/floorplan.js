@@ -27,6 +27,7 @@ const FloorPlan = {
     { tier: 5,  label: 'Oversight',    left: 80, top: 44, w: 105, h: 68,  angle: -1 },
     { tier: 6,  label: 'Annex',        left: 46, top: 18, w: 110, h: 70,  angle: 1.8 },
     { tier: 7,  label: 'Mandate',      left: 46, top: 74, w: 115, h: 74,  angle: -0.8 },
+    { tier: 8,  label: 'Jurisdiction', left: 46, top: 92, w: 120, h: 76,  angle: 0.6 },
   ],
 
   // Corridors connect pairs of rooms (by layout index)
@@ -35,6 +36,7 @@ const FloorPlan = {
     [1, 5], [2, 6], [3, 4],           // Cross connections
     [5, 7], [6, 7], [4, 8], [3, 8],   // Outer ring
     [1, 3], [2, 4],                    // Diagonal tissue
+    [8, 9],                            // Mandate → Jurisdiction
   ],
 
   // Liminal spaces — unlabelled atmospheric rooms
@@ -102,7 +104,7 @@ const FloorPlan = {
   /** Called each frame from the game loop */
   update() {
     // Build a snapshot to avoid unnecessary DOM work
-    const snap = Departments.tiers.map(t => t.owned).join(',');
+    const snap = Departments.tiers.map(t => (t.hidden ? 'H' : '') + t.owned).join(',');
     if (snap === this._prevState) return;
     this._prevState = snap;
 
@@ -123,8 +125,9 @@ const FloorPlan = {
       }
 
       const tier = Departments.tiers[room.tier];
+      if (!tier) { div.style.opacity = '0'; return; }
       const owned = tier.owned;
-      const visible = owned > 0;
+      const visible = owned > 0 && !tier.hidden;
 
       // Scale room slightly with ownership (1.0 → 1.3 over 100 units)
       const growth = 1 + Math.min(owned, 100) * 0.003;
@@ -153,8 +156,10 @@ const FloorPlan = {
       const fromRoom = this.layout[fromIdx];
       const toRoom = this.layout[toIdx];
 
-      const fromVisible = fromRoom.tier === -1 || Departments.tiers[fromRoom.tier].owned > 0;
-      const toVisible = toRoom.tier === -1 || Departments.tiers[toRoom.tier].owned > 0;
+      const fromTier = fromRoom.tier >= 0 ? Departments.tiers[fromRoom.tier] : null;
+      const toTier = toRoom.tier >= 0 ? Departments.tiers[toRoom.tier] : null;
+      const fromVisible = fromRoom.tier === -1 || (fromTier && fromTier.owned > 0 && !fromTier.hidden);
+      const toVisible = toRoom.tier === -1 || (toTier && toTier.owned > 0 && !toTier.hidden);
 
       if (fromVisible && toVisible) {
         // Position the corridor as a line between room centres

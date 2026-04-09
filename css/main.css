@@ -582,6 +582,424 @@ body::before {
   line-height: 1.6;
 }
 
+/* ---------- Restructuring (unlocked) ---------- */
+.restructure-notice {
+  border: 2px solid var(--ink);
+  background: #FDFBF5;
+  padding: 14px 18px 16px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.restructure-notice-header {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.restructure-notice-body {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.86rem;
+  color: var(--ink);
+  opacity: 0.78;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.restructure-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin-bottom: 22px;
+}
+
+.restructure-column h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--green);
+  border-bottom: 1px solid var(--cream-d);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+
+.restructure-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin-bottom: 22px;
+  padding: 16px 18px;
+  background: #FDFBF5;
+  border: 1px solid var(--cream-d);
+  border-radius: 3px;
+}
+
+.restructure-summary-col h4 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--amber-d);
+  margin-bottom: 8px;
+}
+
+.restructure-summary-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.restructure-summary-col li {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 0.82rem;
+  color: var(--ink);
+  opacity: 0.78;
+  padding: 3px 0 3px 14px;
+  position: relative;
+}
+
+.restructure-summary-col li::before {
+  content: '\00B7';
+  position: absolute;
+  left: 4px;
+  top: 0;
+  font-weight: 700;
+  color: var(--amber-d);
+}
+
+.restructure-action {
+  text-align: center;
+  padding: 18px 0 8px;
+}
+
+.restructure-action .btn-ops {
+  font-size: 0.95rem;
+  padding: 12px 28px;
+  letter-spacing: 0.1em;
+}
+
+.restructure-action-note {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.78rem;
+  color: var(--ink);
+  opacity: 0.6;
+  margin-top: 10px;
+}
+
+/* ---------- Restructuring Overlay (full-screen ceremonial card) ---------- */
+.restructure-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 15, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.restructure-overlay.visible {
+  opacity: 1;
+}
+
+.restructure-overlay.exiting {
+  opacity: 0;
+}
+
+.restructure-overlay-card {
+  background: var(--cream);
+  border: 3px double var(--ink);
+  padding: 36px 48px 32px;
+  max-width: 540px;
+  text-align: center;
+  font-family: 'Lora', Georgia, serif;
+  color: var(--ink);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  transform: scale(0.94);
+  transition: transform 0.6s ease;
+}
+
+.restructure-overlay.visible .restructure-overlay-card {
+  transform: scale(1);
+}
+
+.restructure-overlay-header {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.7;
+  margin-bottom: 14px;
+}
+
+.restructure-overlay-rule {
+  border-top: 1px solid var(--cream-d);
+  margin: 14px 0;
+}
+
+.restructure-overlay-quote {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: var(--ink);
+  padding: 6px 0;
+}
+
+.restructure-overlay-gain {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.95rem;
+  color: var(--amber-d);
+  margin-top: 4px;
+}
+
+.restructure-overlay-gain strong {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.restructure-overlay-foot {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--ink);
+  opacity: 0.55;
+  margin-top: 14px;
+}
+
+/* ---------- Restructuring Phase Screen (ascension) ---------- */
+.restructure-phase {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--cream);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.restructure-phase.visible {
+  opacity: 1;
+}
+
+.restructure-phase-inner {
+  width: 100%;
+  max-width: 720px;
+  padding: 48px 32px 60px;
+  font-family: 'Lora', Georgia, serif;
+  color: var(--ink);
+}
+
+.restructure-phase-header {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink);
+  opacity: 0.55;
+  margin-bottom: 10px;
+}
+
+.restructure-phase-flavour {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.86rem;
+  color: var(--ink);
+  opacity: 0.55;
+  text-align: center;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--cream-d);
+  line-height: 1.5;
+}
+
+/* Precedent balance */
+.precedent-balance {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.precedent-balance-label {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--amber-d);
+  margin-bottom: 4px;
+}
+
+.precedent-balance-value {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: 2.2rem;
+  color: var(--amber);
+  letter-spacing: 0.04em;
+}
+
+.precedent-balance-sub {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: var(--ink);
+  opacity: 0.5;
+  margin-top: 6px;
+  letter-spacing: 0.04em;
+}
+
+/* Precedent upgrade grid */
+.precedent-upgrade-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.precedent-upgrade-card {
+  background: #FDFBF5;
+  border: 1.5px solid var(--cream-d);
+  border-radius: 4px;
+  padding: 16px 18px 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.precedent-upgrade-card:not(.owned):not(.unaffordable):hover {
+  border-color: var(--amber);
+  box-shadow: 0 2px 8px rgba(200, 134, 10, 0.18);
+}
+
+.precedent-upgrade-card.owned {
+  border-color: var(--amber);
+  background: rgba(200, 134, 10, 0.06);
+}
+
+.precedent-upgrade-card.unaffordable {
+  opacity: 0.5;
+}
+
+.precedent-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  gap: 10px;
+}
+
+.precedent-card-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--green);
+}
+
+.precedent-card-cost {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--amber-d);
+  white-space: nowrap;
+}
+
+.precedent-card-desc {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--ink);
+  opacity: 0.7;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.precedent-card-status {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amber-d);
+}
+
+.btn-prec-buy {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 7px 16px;
+  background: var(--green);
+  color: var(--cream);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-prec-buy:hover:not(:disabled) {
+  background: var(--green-l);
+  transform: translateY(-1px);
+}
+
+.btn-prec-buy:disabled {
+  background: var(--cream-d);
+  color: #AAA;
+  cursor: not-allowed;
+}
+
+/* Begin Next Cycle button */
+.restructure-phase-action {
+  text-align: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--cream-d);
+}
+
+.btn-begin-cycle {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 14px 36px;
+  background: var(--amber);
+  color: var(--cream);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+  box-shadow: 0 3px 10px rgba(200, 134, 10, 0.3);
+}
+
+.btn-begin-cycle:hover {
+  background: var(--amber-d);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(200, 134, 10, 0.35);
+}
+
+.restructure-phase-action-note {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.78rem;
+  color: var(--ink);
+  opacity: 0.45;
+  margin-top: 12px;
+}
+
 /* ---------- Operations ---------- */
 .operations-section {
   margin-bottom: 28px;

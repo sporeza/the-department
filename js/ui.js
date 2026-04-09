@@ -23,6 +23,8 @@ const UI = {
     this.els.directivesTotal = document.getElementById('directives-total');
     this.els.convertBtn = document.getElementById('btn-convert');
     this.els.formsPerClick = document.getElementById('forms-per-click');
+    this.els.precedentsRow = document.getElementById('precedents-row');
+    this.els.precedentsTotal = document.getElementById('precedents-total');
 
     this.bindClick();
     this.bindTabs();
@@ -124,6 +126,7 @@ const UI = {
   renderDepartments() {
     const frag = document.createDocumentFragment();
     Departments.tiers.forEach((tier, i) => {
+      if (tier.hidden) return; // skip hidden tiers (e.g., locked Jurisdiction)
       const el = document.createElement('div');
       el.className = 'dept-item';
       el.dataset.tier = i;
@@ -195,6 +198,8 @@ const UI = {
     const items = this.els.deptList.querySelectorAll('.dept-item');
     items.forEach((el) => {
       const tier = Departments.tiers[el.dataset.tier];
+      if (!tier || tier.hidden) { el.style.display = 'none'; return; }
+      el.style.display = '';
       const cost = Departments.getCost(tier);
       el.querySelector('.dept-cost').textContent = '✦ ' + formatNumber(cost);
       el.querySelector('.dept-owned').textContent = tier.owned;
@@ -205,6 +210,12 @@ const UI = {
         nameEl.textContent = Departments.getDisplayName(tier);
       }
     });
+  },
+
+  /** Tear down and rebuild the departments list (needed when hidden tiers become visible) */
+  rebuildDepartments() {
+    this.els.deptList.innerHTML = '';
+    this.renderDepartments();
   },
 
   // --- Directives conversion ---
@@ -268,6 +279,13 @@ const UI = {
     if (Upgrades.directivesUnlocked) {
       this.els.directivesTotal.textContent = formatNumber(Game.directives);
       this.els.convertBtn.disabled = Game.forms < Upgrades.CONVERSION_RATE;
+    }
+
+    // Precedents UI visibility (show once any have been earned or restructurings done)
+    const showPrec = Game.precedents > 0 || Game.restructurings > 0;
+    this.els.precedentsRow.style.display = showPrec ? '' : 'none';
+    if (showPrec) {
+      this.els.precedentsTotal.textContent = formatNumber(Game.precedents);
     }
 
     // Update upgrades tab when available upgrades change
@@ -377,6 +395,7 @@ const UI = {
         return '\u00d7' + eff.value + ' ' + (tier ? Departments.getDisplayName(tier) : eff.target) + ' output';
       case 'global-mult': return '\u00d7' + eff.value + ' all department output';
       case 'global-mult-if-doubled': return '+5% all output if any dept has 2+ owned';
+      case 'unlock-restructuring': return 'Unlocks the Restructuring procedure';
       default: return '';
     }
   },
@@ -420,6 +439,27 @@ const CentreTabs = {
     this.renderRestructuring();
     this.renderOperations();
     this.renderRegistry();
+
+    // If a save already had The Reorganisation purchased, unlock the tab now
+    if (typeof Restructuring !== 'undefined' && Restructuring.isUnlocked()) {
+      this.unlockRestructuring();
+    }
+  },
+
+  /** Unlock the Restructuring centre tab (called when "The Reorganisation" is purchased or restored from save) */
+  unlockRestructuring() {
+    const tab = this._tabs.restructuring;
+    if (!tab) return;
+    if (!tab.classList.contains('locked') && !tab.disabled) return; // already unlocked
+
+    tab.classList.remove('locked');
+    tab.disabled = false;
+    tab.removeAttribute('title');
+
+    // Bind click (init() skipped this because it was disabled)
+    tab.addEventListener('click', () => this.switchTo('restructuring'));
+
+    this.renderRestructuring();
   },
 
   switchTo(id) {
@@ -432,11 +472,15 @@ const CentreTabs = {
     if (id === 'registry') this.renderRegistry();
     if (id === 'honours') this.renderHonours();
     if (id === 'operations') this.refreshOperationsStatus();
+    if (id === 'restructuring') this.renderRestructuring();
   },
 
   /** Called from the game loop — only does work when a live view is visible. */
   tickActive() {
     if (this.active === 'registry') this.renderRegistry();
+    if (this.active === 'restructuring' && typeof Restructuring !== 'undefined' && Restructuring.isUnlocked()) {
+      this.refreshRestructuringLive();
+    }
   },
 
   // ---------- Registry (Stats) ----------
@@ -468,7 +512,8 @@ const CentreTabs = {
       ['Milestones earned', milestonesEarned + ' / ' + milestonesTotal],
       ['Random events caught', formatNumber(eventsCaught)],
       ['Random events missed', formatNumber(eventsMissed)],
-      ['Restructurings survived', '0']
+      ['Restructurings survived', formatNumber(Game.restructurings || 0)],
+      ['Precedents held', formatNumber(Game.precedents || 0)]
     ]);
 
     const tierRows = Departments.tiers.map(t =>
@@ -532,21 +577,150 @@ const CentreTabs = {
       '</div>';
   },
 
-  // ---------- Restructuring (locked stub) ----------
+  // ---------- Restructuring (prestige) ----------
   renderRestructuring() {
     const view = this._views.restructuring;
     if (!view) return;
+
+    // Locked state — no Reorganisation upgrade purchased yet
+    if (typeof Restructuring === 'undefined' || !Restructuring.isUnlocked()) {
+      view.innerHTML =
+        '<div class="admin-view">' +
+          '<h2 class="admin-view-header">Restructuring</h2>' +
+          '<p class="admin-view-flavour">Standard Procedure 7(b) — Reorganisation Authority Required</p>' +
+          '<div class="restructuring-stub">' +
+            '<div class="restructuring-stub-stamp">Authority Pending</div>' +
+            '<p class="restructuring-stub-text">' +
+              'Restructuring procedures are not yet authorised. The directive titled <em>"The Reorganisation"</em> has not been filed. Until such time as the requisite paperwork is processed, The Department will continue in its present configuration. The Department will continue regardless.' +
+            '</p>' +
+          '</div>' +
+        '</div>';
+      return;
+    }
+
+    // Unlocked state — show live Precedent calculation, summary, action button
+    const gain = Restructuring.calculateGain();
+    const held = Game.precedents || 0;
+    const totalAfter = held + gain;
+    const survived = Game.restructurings || 0;
+    const currentMult = Game.getPrecedentMultiplier();
+    const newMult = Math.pow(1.01, totalAfter);
+    const canDo = Restructuring.canRestructure();
+    const nextThreshold = Restructuring.formsForNextPrecedent();
+
     view.innerHTML =
       '<div class="admin-view">' +
         '<h2 class="admin-view-header">Restructuring</h2>' +
-        '<p class="admin-view-flavour">Standard Procedure 7(b) — Reorganisation Authority Required</p>' +
-        '<div class="restructuring-stub">' +
-          '<div class="restructuring-stub-stamp">Authority Pending</div>' +
-          '<p class="restructuring-stub-text">' +
-            'Restructuring procedures are not yet authorised. The directive titled <em>"The Reorganisation"</em> has not been filed. Until such time as the requisite paperwork is processed, The Department will continue in its present configuration. The Department will continue regardless.' +
+        '<p class="admin-view-flavour">Standard Procedure 7(b) — Filed under the authority of "The Reorganisation"</p>' +
+
+        '<div class="restructure-notice">' +
+          '<div class="restructure-notice-header">NOTICE OF PROPOSED DISSOLUTION</div>' +
+          '<p class="restructure-notice-body">' +
+            'Initiating a Restructuring will dissolve all current departments, forms, and directives. This action is in accordance with Standard Procedure 7(b). The Department will continue.' +
           '</p>' +
         '</div>' +
+
+        '<div class="restructure-grid">' +
+          '<div class="restructure-column">' +
+            '<h3>Current Standing</h3>' +
+            '<div class="registry-row"><span class="registry-label">Precedents held</span><span class="registry-value" data-rs="held">\u2316 ' + formatNumber(held) + '</span></div>' +
+            '<div class="registry-row"><span class="registry-label">Permanent multiplier</span><span class="registry-value" data-rs="cur-mult">\u00d7' + currentMult.toFixed(3) + '</span></div>' +
+            '<div class="registry-row"><span class="registry-label">Restructurings survived</span><span class="registry-value" data-rs="survived">' + formatNumber(survived) + '</span></div>' +
+            '<div class="registry-row"><span class="registry-label">Forms filed this run</span><span class="registry-value" data-rs="run">' + formatNumber(Game.runFormsEarned) + '</span></div>' +
+          '</div>' +
+          '<div class="restructure-column">' +
+            '<h3>Projected Outcome</h3>' +
+            '<div class="registry-row"><span class="registry-label">Precedents to be earned</span><span class="registry-value" data-rs="gain">\u2316 ' + formatNumber(gain) + '</span></div>' +
+            '<div class="registry-row"><span class="registry-label">Total after Restructuring</span><span class="registry-value" data-rs="total-after">\u2316 ' + formatNumber(totalAfter) + '</span></div>' +
+            '<div class="registry-row"><span class="registry-label">New permanent multiplier</span><span class="registry-value" data-rs="new-mult">\u00d7' + newMult.toFixed(3) + '</span></div>' +
+            '<div class="registry-row"><span class="registry-label">Forms required for next \u2316</span><span class="registry-value" data-rs="next">' + formatNumber(nextThreshold) + '</span></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="restructure-summary">' +
+          '<div class="restructure-summary-col">' +
+            '<h4>To be dissolved</h4>' +
+            '<ul>' +
+              '<li>All Forms on hand</li>' +
+              '<li>All Directives</li>' +
+              '<li>All departments and their staff</li>' +
+              '<li>All purchased Upgrades (excluding "The Reorganisation")</li>' +
+              '<li>All temporary buffs and active events</li>' +
+            '</ul>' +
+          '</div>' +
+          '<div class="restructure-summary-col">' +
+            '<h4>To be retained</h4>' +
+            '<ul>' +
+              '<li>Precedents (\u2316) earned, in perpetuity</li>' +
+              '<li>"The Reorganisation" itself</li>' +
+              '<li>All commendations on the Honours Board</li>' +
+              '<li>Lifetime totals in the Registry</li>' +
+              '<li>Custom departmental nomenclature</li>' +
+            '</ul>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="restructure-action">' +
+          '<button class="btn-ops danger" data-rs="initiate"' + (canDo ? '' : ' disabled') + '>Initiate Restructuring</button>' +
+          '<div class="restructure-action-note" data-rs="note">' +
+            (canDo
+              ? 'Authority to proceed has been confirmed. The Department will continue.'
+              : 'Insufficient Forms have been processed to justify Restructuring. At least one Precedent must be earnable.') +
+          '</div>' +
+        '</div>' +
       '</div>';
+
+    this.bindRestructuringAction();
+  },
+
+  /** Cheap per-tick refresh of the live values on the Restructuring panel (no DOM teardown). */
+  refreshRestructuringLive() {
+    const view = this._views.restructuring;
+    if (!view) return;
+    const q = (sel) => view.querySelector('[data-rs="' + sel + '"]');
+    const gainEl = q('gain');
+    if (!gainEl) return; // not in unlocked render
+
+    const gain = Restructuring.calculateGain();
+    const held = Game.precedents || 0;
+    const totalAfter = held + gain;
+    const newMult = Math.pow(1.01, totalAfter);
+    const canDo = Restructuring.canRestructure();
+    const nextThreshold = Restructuring.formsForNextPrecedent();
+
+    gainEl.textContent = '\u2316 ' + formatNumber(gain);
+    q('total-after').textContent = '\u2316 ' + formatNumber(totalAfter);
+    q('new-mult').textContent = '\u00d7' + newMult.toFixed(3);
+    q('run').textContent = formatNumber(Game.runFormsEarned);
+    q('next').textContent = formatNumber(nextThreshold);
+
+    const btn = q('initiate');
+    if (btn) btn.disabled = !canDo;
+    const note = q('note');
+    if (note) {
+      note.textContent = canDo
+        ? 'Authority to proceed has been confirmed. The Department will continue.'
+        : 'Insufficient Forms have been processed to justify Restructuring. At least one Precedent must be earnable.';
+    }
+  },
+
+  bindRestructuringAction() {
+    const view = this._views.restructuring;
+    if (!view) return;
+    const btn = view.querySelector('[data-rs="initiate"]');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      if (!Restructuring.canRestructure()) return;
+      // Confirm via native dialog (deadpan, in keeping with the tone)
+      const ok = window.confirm(
+        'Initiate Restructuring?\n\n' +
+        'All current Forms, Directives, departments and Upgrades will be dissolved. ' +
+        'Precedents earned will be retained.\n\n' +
+        'The Department will continue.'
+      );
+      if (!ok) return;
+      Restructuring.perform();
+    });
   },
 
   // ---------- Operations (Save / Options) ----------

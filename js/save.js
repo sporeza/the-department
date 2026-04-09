@@ -13,14 +13,20 @@ const Save = {
   /** Serialise current game state into a JSON string */
   serialise() {
     return JSON.stringify({
-      version: 5,
+      version: 7,
       timestamp: Date.now(),
       game: {
         forms: Game.forms,
         formsPerClick: Game.formsPerClick,
         totalFormsEarned: Game.totalFormsEarned,
+        runFormsEarned: Game.runFormsEarned,
         totalClicks: Game.totalClicks,
         directives: Game.directives,
+        precedents: Game.precedents,
+        restructurings: Game.restructurings,
+        precedentUpgrades: Game.precedentUpgrades,
+        preResetForms: Game.preResetForms,
+        phase: Game.phase,
         deptName: Game.deptName
       },
       departments: Departments.tiers.map(t => ({ id: t.id, owned: t.owned })),
@@ -89,8 +95,14 @@ const Save = {
     // Restore game state
     Game.forms = data.game.forms || 0;
     Game.totalFormsEarned = data.game.totalFormsEarned || 0;
+    Game.runFormsEarned = (data.game && typeof data.game.runFormsEarned === 'number') ? data.game.runFormsEarned : Game.totalFormsEarned;
     Game.totalClicks = data.game.totalClicks || 0;
     Game.directives = (data.game && data.game.directives) || 0;
+    Game.precedents = (data.game && data.game.precedents) || 0;
+    Game.restructurings = (data.game && data.game.restructurings) || 0;
+    Game.precedentUpgrades = (data.game && data.game.precedentUpgrades) || {};
+    Game.preResetForms = (data.game && data.game.preResetForms) || 0;
+    Game.phase = (data.game && data.game.phase) || 'running';
     Game.deptName = (data.game && data.game.deptName) || undefined;
 
     // Restore department ownership
@@ -100,6 +112,12 @@ const Save = {
       Departments.tiers.forEach(tier => {
         tier.owned = owned[tier.id] || 0;
       });
+    }
+
+    // Unhide Jurisdiction if Precedent of Scale was purchased
+    if (Game.precedentUpgrades['precedent-of-scale']) {
+      const juris = Departments.tiers.find(t => t.id === 'jurisdiction');
+      if (juris) juris.hidden = false;
     }
 
     // Restore custom department names
@@ -132,13 +150,14 @@ const Save = {
     // Recalculate effects from restored upgrades (sets formsPerClick + dept multipliers)
     Upgrades.applyEffects();
 
-    // Offline income — award passive income for time away
-    if (data.timestamp && Game.formsPerSec > 0) {
+    // Offline income — award passive income for time away (skip if mid-restructuring)
+    if (Game.phase === 'running' && data.timestamp && Game.formsPerSec > 0) {
       const elapsed = (Date.now() - data.timestamp) / 1000; // seconds
       if (elapsed > 1) {
         const offline = Game.formsPerSec * elapsed;
         Game.forms += offline;
         Game.totalFormsEarned += offline;
+        Game.runFormsEarned += offline;
       }
     }
 

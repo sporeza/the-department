@@ -172,6 +172,16 @@ const Upgrades = {
       unlock: () => Upgrades.directivesUnlocked
     },
     {
+      id: 'the-reorganisation',
+      name: 'The Reorganisation',
+      desc: 'A standing authority to dissolve The Department and reconstitute it from first principles. Filed under Standard Procedure 7(b). Once filed, never rescinded.',
+      category: 'prestige',
+      currency: 'directives',
+      cost: 150,
+      effect: { type: 'unlock-restructuring' },
+      unlock: () => Departments.getOwned('oversight-body') >= 1
+    },
+    {
       id: 'the-memo',
       name: 'The Memo',
       desc: 'A memo circulates. Nobody wrote it. Everyone has read it. All departments produce 10% more.',
@@ -217,6 +227,11 @@ const Upgrades = {
 
     this.purchased[upg.id] = true;
     this.applyEffects();
+
+    // Side-effect: unlock the Restructuring centre tab
+    if (upg.id === 'the-reorganisation' && typeof CentreTabs !== 'undefined') {
+      CentreTabs.unlockRestructuring();
+    }
     return true;
   },
 
@@ -249,7 +264,10 @@ const Upgrades = {
       for (const tier of Departments.tiers) totalDepts += tier.owned;
     }
 
-    Game.formsPerClick = clickBase * clickMult * (hasDeptBonus ? (1 + 0.01 * totalDepts) : 1);
+    const precMult = Game.getPrecedentMultiplier ? Game.getPrecedentMultiplier() : 1;
+    const estProcMult = (Game.precedentUpgrades && Game.precedentUpgrades['established-procedure']) ? 3 : 1;
+    const eternalMult = (Game.precedentUpgrades && Game.precedentUpgrades['the-eternal-mandate']) ? 2 : 1;
+    Game.formsPerClick = clickBase * clickMult * (hasDeptBonus ? (1 + 0.01 * totalDepts) : 1) * precMult * estProcMult * eternalMult;
 
     // --- Department income recalc ---
     Departments.recalcIncome();

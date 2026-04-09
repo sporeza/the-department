@@ -8,16 +8,23 @@ const Game = {
   forms: 0,
   formsPerClick: 1,
   formsPerSec: 0,
-  totalFormsEarned: 0,
+  totalFormsEarned: 0,    // lifetime, persists through Restructurings
+  runFormsEarned: 0,      // current-run only, resets on Restructuring (used for Precedent calc)
   totalClicks: 0,
   directives: 0,
-  deptName: undefined, // custom department name (left panel title)
+  precedents: 0,          // prestige meta-currency, persists through Restructurings
+  restructurings: 0,      // lifetime count of completed Restructurings
+  precedentUpgrades: {},   // { upgradeId: true } — purchased Precedent upgrades, persist forever
+  preResetForms: 0,        // stashed before reset for Continuity of Operations
+  phase: 'running',        // 'running' | 'restructuring'
+  deptName: undefined,     // custom department name (left panel title)
 
   /** Called every tick (~100ms) to accumulate passive income */
   tick(dt) {
     const earned = this.formsPerSec * dt;
     this.forms += earned;
     this.totalFormsEarned += earned;
+    this.runFormsEarned += earned;
     Upgrades.checkDirectivesUnlock();
   },
 
@@ -25,7 +32,42 @@ const Game = {
   clickApprove() {
     this.forms += this.formsPerClick;
     this.totalFormsEarned += this.formsPerClick;
+    this.runFormsEarned += this.formsPerClick;
     this.totalClicks++;
+  },
+
+  /** Compounding multiplier from Precedents (+1% per Precedent) */
+  getPrecedentMultiplier() {
+    return Math.pow(1.01, this.precedents);
+  },
+
+  /** Apply one-time start-of-run effects from Precedent upgrades (called when leaving restructuring phase) */
+  applyRunStartEffects() {
+    // Institutional Memory — start with 1 Intern
+    if (this.precedentUpgrades['institutional-memory-p']) {
+      const intern = Departments.tiers.find(t => t.id === 'intern');
+      if (intern && intern.owned < 1) intern.owned = 1;
+    }
+
+    // Continuity of Operations — retain 5% of pre-reset Forms
+    if (this.precedentUpgrades['continuity-of-operations']) {
+      const retained = Math.floor(this.preResetForms * 0.05);
+      this.forms += retained;
+      this.totalFormsEarned += retained;
+      this.runFormsEarned += retained;
+    }
+
+    // Established Procedure — click output starts ×3
+    // (applied as a base multiplier in Upgrades.applyEffects)
+
+    // Precedent of Scale — unhide The Jurisdiction
+    if (this.precedentUpgrades['precedent-of-scale']) {
+      const juris = Departments.tiers.find(t => t.id === 'jurisdiction');
+      if (juris) juris.hidden = false;
+    }
+
+    // Recalculate everything after applying start effects
+    Upgrades.applyEffects();
   }
 };
 
@@ -36,14 +78,17 @@ function gameLoop(now) {
   const dt = (now - lastTick) / 1000; // seconds
   lastTick = now;
 
-  Game.tick(dt);
-  Milestones.check();
-  Milestones.processQueue();
-  UI.updateStats();
-  UI.updateDepartments();
-  FloorPlan.update();
-  if (typeof RandomEvents !== 'undefined') RandomEvents.tick(dt);
-  if (typeof CentreTabs !== 'undefined') CentreTabs.tickActive();
+  if (Game.phase === 'running') {
+    Game.tick(dt);
+    Milestones.check();
+    Milestones.processQueue();
+    UI.updateStats();
+    UI.updateDepartments();
+    FloorPlan.update();
+    if (typeof RandomEvents !== 'undefined') RandomEvents.tick(dt);
+    if (typeof CentreTabs !== 'undefined') CentreTabs.tickActive();
+    if (typeof Restructuring !== 'undefined') Restructuring.checkUnlock();
+  }
 
   requestAnimationFrame(gameLoop);
 }
@@ -56,5 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof CentreTabs !== 'undefined') CentreTabs.init();
   if (typeof RandomEvents !== 'undefined') RandomEvents.init();
   Save.startAutoSave(); // auto-save every 30s + on page unload
+
+  // If we saved mid-restructuring, reconstruct the phase screen
+  if (Game.phase === 'restructuring' && typeof Restructuring !== 'undefined') {
+    Restructuring.enterPhaseFromLoad();
+  }
+
   requestAnimationFrame(gameLoop);
 });

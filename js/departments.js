@@ -89,6 +89,15 @@ const Departments = {
       baseCost: 330000000,
       baseRate: 18000,
       owned: 0
+    },
+    {
+      id: 'jurisdiction',
+      name: 'The Jurisdiction',
+      desc: 'A conceptual territory that exists on no map but governs all maps. It administers the act of administration itself.',
+      baseCost: 5000000000,
+      baseRate: 100000,
+      owned: 0,
+      hidden: true
     }
   ],
 
@@ -99,6 +108,7 @@ const Departments = {
 
   /** Try to buy one unit of a tier. Returns true on success. */
   buy(tier) {
+    if (tier.hidden) return false;
     const cost = this.getCost(tier);
     if (Game.forms < cost) return false;
     Game.forms -= cost;
@@ -117,9 +127,13 @@ const Departments = {
   recalcIncome() {
     let total = 0;
     for (const tier of this.tiers) {
+      if (tier.hidden) continue;
       const mult = (typeof Upgrades !== 'undefined') ? Upgrades.getDeptMultiplier(tier.id) : 1;
       total += tier.baseRate * tier.owned * mult;
     }
-    Game.formsPerSec = total * (typeof RandomEvents !== 'undefined' ? RandomEvents.getGlobalBuffMultiplier() : 1);
+    const buffMult = (typeof RandomEvents !== 'undefined') ? RandomEvents.getGlobalBuffMultiplier() : 1;
+    const precMult = (typeof Game !== 'undefined' && Game.getPrecedentMultiplier) ? Game.getPrecedentMultiplier() : 1;
+    const eternalMult = (Game.precedentUpgrades && Game.precedentUpgrades['the-eternal-mandate']) ? 2 : 1;
+    Game.formsPerSec = total * buffMult * precMult * eternalMult;
   }
 };
