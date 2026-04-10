@@ -69,7 +69,13 @@ const FloorPlan = {
         '<div class="room-inner">' +
           '<span class="room-label">' + room.label + '</span>' +
           '<span class="room-badge">0</span>' +
-        '</div>';
+        '</div>' +
+        (room.tier >= 0 ? '<div class="room-tooltip' + (room.top < 30 ? ' tooltip-below' : '') + '"></div>' : '');
+      div.dataset.tier = room.tier;
+      if (room.tier >= 0) {
+        div.addEventListener('mouseenter', () => { this._hoveredRoom = i; });
+        div.addEventListener('mouseleave', () => { this._hoveredRoom = null; });
+      }
       this.el.appendChild(div);
       this._rooms.push(div);
     });
@@ -101,8 +107,28 @@ const FloorPlan = {
     });
   },
 
+  _hoveredRoom: null, // currently hovered room index (or null)
+
+  /** Update tooltip content only for the hovered room (called each frame) */
+  _updateTooltip() {
+    if (this._hoveredRoom === null) return;
+    var room = this.layout[this._hoveredRoom];
+    if (!room || room.tier < 0) return;
+    var tier = Departments.tiers[room.tier];
+    if (!tier || tier.owned <= 0 || tier.hidden) return;
+    var tip = this._rooms[this._hoveredRoom].querySelector('.room-tooltip');
+    if (!tip) return;
+    tip.innerHTML =
+      '<strong>' + Departments.getDisplayName(tier) + '</strong>' +
+      '<span>' + tier.owned + ' owned</span>' +
+      '<span>' + formatNumber(tier.effectiveRate, 1) + ' Forms/sec</span>' +
+      '<span>' + formatNumber(tier.totalFormsGenerated) + ' total filed</span>';
+  },
+
   /** Called each frame from the game loop */
   update() {
+    this._updateTooltip();
+
     // Build a snapshot to avoid unnecessary DOM work
     const snap = Departments.tiers.map(t => (t.hidden ? 'H' : '') + t.owned).join(',');
     if (snap === this._prevState) return;

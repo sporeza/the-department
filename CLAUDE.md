@@ -50,11 +50,11 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Random events tracking — `RandomEvents.caughtCount` and `missedCount` lifetime counters, incremented in `catchEvent()`/`missEvent()`, serialised/restored, survive Restructuring
 - New Game stats: `totalDirectivesConverted`, `totalPrecedentsEarned`, `peakFormsPerSec`, `gameStartTime`, `runStartTime` — all persisted in save (v8)
 - `formatDuration(ms)` utility in `ui.js` for human-readable time display (Xd Xh Xm Xs)
+- Floor plan hover tooltips — hovering a department room shows a tooltip with display name, owned count, effective Forms/sec, and lifetime total filed; tooltip flips below for top-edge rooms; only the hovered room's tooltip is updated each frame for performance; respects reduced-motion setting
 
 ### What's not done yet (PoC scope)
 - Update UI with new/toggle options for +10/+50/+100 for both shop purchases and directives exchanges.
 - News ticker dynamic content beyond milestones (30+ static lines)
-- Floor plan hover for per-department stats
 - Synergy upgrades
 - Additional department multiplier tiers (10/25/50/100 ownership milestones)
 - Additional random events.
