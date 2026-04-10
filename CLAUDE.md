@@ -59,6 +59,14 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Additional department multiplier tiers (10/25/50/100 ownership milestones)
 - Additional random events.
 
+### Open bugs/known issues
+
+- With Reduced Motion option enabled: Clicking on the stamp/form doesn't clear the floating text.
+- Issue with random events keep adding their news ticker item to the overall news ticker queue, no deduping, meaning that with my reduced debug timeframes for random events, it can fill out the queue completely with random event ticker items.
+- The UI numbers volumes on the left for rates (forms/click and forms/sec) are not shortened, even with the option for abbreviated number formatting enabled.
+- The on-hover floor plan department tooltips are aligned with the tilt of the floorplan itself - not nice UI feeling. Need to change to no tilt.
+
+
 ## Tech Stack & File Structure
 
 - `index.html` — single-page entry point, loads all CSS and JS
