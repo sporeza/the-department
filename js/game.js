@@ -18,6 +18,12 @@ const Game = {
   preResetForms: 0,        // stashed before reset for Continuity of Operations
   phase: 'running',        // 'running' | 'restructuring'
   deptName: undefined,     // custom department name (left panel title)
+  totalRejections: 0,           // lifetime rejected (missed) stamp clicks
+  totalDirectivesConverted: 0, // lifetime Directives converted from Forms
+  totalPrecedentsEarned: 0,    // all-time Precedents earned (not just currently held)
+  peakFormsPerSec: 0,          // all-time peak Forms/sec
+  gameStartTime: Date.now(),   // timestamp of first game start (never reset)
+  runStartTime: Date.now(),    // timestamp of current run start (reset on Restructuring)
   settings: {
     offlineIncome: true,
     tickerSpeed: 'normal',       // 'slow' | 'normal' | 'fast'
@@ -31,6 +37,10 @@ const Game = {
     this.forms += earned;
     this.totalFormsEarned += earned;
     this.runFormsEarned += earned;
+    if (this.formsPerSec > this.peakFormsPerSec) {
+      this.peakFormsPerSec = this.formsPerSec;
+    }
+    Departments.tickTierAttribution(dt);
     Upgrades.checkDirectivesUnlock();
   },
 

@@ -9,6 +9,8 @@ const RandomEvents = {
   unlocked: false,
   activeEvent: null,   // { id, timeRemaining, el } or null
   buffs: [],           // [{ id, label, multiplier, remaining }]
+  caughtCount: 0,      // lifetime events caught (persists through Restructuring)
+  missedCount: 0,      // lifetime events missed (persists through Restructuring)
   spawnTimers: {
     tier1: 0,
     tier2: 0
@@ -195,6 +197,8 @@ const RandomEvents = {
     var def = this.getEventDef(this.activeEvent.id);
     if (!def) return;
 
+    this.caughtCount++;
+
     // Grant reward
     var rewardText = def.reward();
 
@@ -217,6 +221,7 @@ const RandomEvents = {
   // --- Miss (event expired) ---
   missEvent: function () {
     if (!this.activeEvent) return;
+    this.missedCount++;
     var def = this.getEventDef(this.activeEvent.id);
 
     // Remove DOM
@@ -329,7 +334,9 @@ const RandomEvents = {
         : null,
       buffs: this.buffs.map(function (b) {
         return { id: b.id, label: b.label, multiplier: b.multiplier, remaining: b.remaining };
-      })
+      }),
+      caughtCount: this.caughtCount,
+      missedCount: this.missedCount
     };
   },
 
@@ -351,5 +358,7 @@ const RandomEvents = {
         return b.remaining > 0;
       });
     }
+    this.caughtCount = data.caughtCount || 0;
+    this.missedCount = data.missedCount || 0;
   }
 };

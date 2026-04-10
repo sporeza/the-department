@@ -45,9 +45,13 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Operations tab — manual save (File Current State), export save string (Submit to Archive), import save string (Retrieve from Archive), wipe save with CONFIRMED prompt (Initiate Total Dissolution)
 - Operations → Options — four fully wired settings persisted in save: offline income toggle (gates offline earnings on load), news ticker speed (Slow 70s / Normal 45s / Fast 25s via inline animationDuration), reduced motion (targeted `animation: none` on decorative elements, preserves functional event travel; ticker switches to 4s static cycling via `.ticker-active` class), number formatting (Full locale / Abbreviated with 16 suffixes K→QiDc + scientific fallback above 1e48 / Scientific notation)
 - `Game.settings` object holds runtime options, serialised inside `game` block in save data, restored via `Object.assign` on load
+- Registry tab — full two-column ledger (Lifetime vs Current Run) with 10 lifetime stats (Forms filed, Directives converted, clicks, Restructurings, Precedents earned, peak Forms/sec, events caught/missed, milestones, time existed) and 12 current-run stats (run Forms, on-hand Forms, Forms/sec, Forms/click, Directives, departments, tiers, upgrades, Precedents held/projected, run time, buffs), plus per-tier breakdown showing count, effective rate/s, and lifetime Forms generated
+- Per-tier production tracking — `effectiveRate` and `totalFormsGenerated` stored on each `Departments.tiers[]` entry, computed in `recalcIncome()` and attributed in `tickTierAttribution(dt)` each tick; ready for floor plan hover tooltips
+- Random events tracking — `RandomEvents.caughtCount` and `missedCount` lifetime counters, incremented in `catchEvent()`/`missEvent()`, serialised/restored, survive Restructuring
+- New Game stats: `totalDirectivesConverted`, `totalPrecedentsEarned`, `peakFormsPerSec`, `gameStartTime`, `runStartTime` — all persisted in save (v8)
+- `formatDuration(ms)` utility in `ui.js` for human-readable time display (Xd Xh Xm Xs)
 
 ### What's not done yet (PoC scope)
-- Operations → Registry plumbing (tracking all the metrics: random events tracking, restructuring tracking)
 - Update UI with new/toggle options for +10/+50/+100 for both shop purchases and directives exchanges.
 - News ticker dynamic content beyond milestones (30+ static lines)
 - Floor plan hover for per-department stats

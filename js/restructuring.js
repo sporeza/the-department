@@ -124,6 +124,7 @@ const Restructuring = {
 
     // Award Precedents and increment lifetime restructuring count
     Game.precedents += gain;
+    Game.totalPrecedentsEarned += gain;
     Game.restructurings += 1;
 
     // --- Reset current-run state ---
@@ -132,6 +133,7 @@ const Restructuring = {
     Game.runFormsEarned = 0;
     Game.formsPerClick = 1;
     Game.formsPerSec = 0;
+    Game.runStartTime = Date.now();
 
     // Reset all department ownership
     for (const tier of Departments.tiers) {

@@ -99,7 +99,11 @@ const Departments = {
       owned: 0,
       hidden: true
     }
-  ],
+  ].map(function(t) {
+    t.totalFormsGenerated = 0;  // lifetime forms produced by this tier
+    t.effectiveRate = 0;        // current effective Forms/sec (computed by recalcIncome)
+    return t;
+  }),
 
   /** Current cost for the next unit of a tier */
   getCost(tier) {
@@ -126,14 +130,26 @@ const Departments = {
   /** Recalculate total passive Forms/sec from all departments */
   recalcIncome() {
     let total = 0;
-    for (const tier of this.tiers) {
-      if (tier.hidden) continue;
-      const mult = (typeof Upgrades !== 'undefined') ? Upgrades.getDeptMultiplier(tier.id) : 1;
-      total += tier.baseRate * tier.owned * mult;
-    }
     const buffMult = (typeof RandomEvents !== 'undefined') ? RandomEvents.getGlobalBuffMultiplier() : 1;
     const precMult = (typeof Game !== 'undefined' && Game.getPrecedentMultiplier) ? Game.getPrecedentMultiplier() : 1;
     const eternalMult = (Game.precedentUpgrades && Game.precedentUpgrades['the-eternal-mandate']) ? 2 : 1;
-    Game.formsPerSec = total * buffMult * precMult * eternalMult;
+    const globalMult = buffMult * precMult * eternalMult;
+
+    for (const tier of this.tiers) {
+      if (tier.hidden) { tier.effectiveRate = 0; continue; }
+      const mult = (typeof Upgrades !== 'undefined') ? Upgrades.getDeptMultiplier(tier.id) : 1;
+      tier.effectiveRate = tier.baseRate * tier.owned * mult * globalMult;
+      total += tier.effectiveRate;
+    }
+    Game.formsPerSec = total;
+  },
+
+  /** Attribute passive income to each tier (called each tick) */
+  tickTierAttribution(dt) {
+    for (const tier of this.tiers) {
+      if (tier.effectiveRate > 0) {
+        tier.totalFormsGenerated += tier.effectiveRate * dt;
+      }
+    }
   }
 };

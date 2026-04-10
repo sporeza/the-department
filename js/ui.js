@@ -97,6 +97,7 @@ const UI = {
 
   /** Mis-stamp — rejection animation, no reward */
   stampMiss(e) {
+    Game.totalRejections++;
     this.playStampAnim();
     this.els.stamp.classList.add('stamp-rejected');
     this.els.stamp.addEventListener('animationend', () => {
@@ -505,6 +506,8 @@ const CentreTabs = {
       activeBuffs = (RandomEvents.buffs || []).length;
     }
 
+    const projectedPrecedents = (typeof Restructuring !== 'undefined') ? Restructuring.calculateGain() : 0;
+
     const rows = (pairs) => pairs.map(([l, v]) =>
       '<div class="registry-row"><span class="registry-label">' + l +
       '</span><span class="registry-value">' + v + '</span></div>'
@@ -512,28 +515,39 @@ const CentreTabs = {
 
     const lifetime = rows([
       ['Total Forms filed', formatNumber(Game.totalFormsEarned)],
+      ['Total Directives converted', formatNumber(Game.totalDirectivesConverted)],
       ['Total clicks approved', formatNumber(Game.totalClicks)],
-      ['Milestones earned', milestonesEarned + ' / ' + milestonesTotal],
+      ['Total stamps rejected', formatNumber(Game.totalRejections)],
+      ['Restructurings survived', formatNumber(Game.restructurings || 0)],
+      ['Total Precedents earned', formatNumber(Game.totalPrecedentsEarned)],
+      ['Peak Forms / sec', formatNumber(Game.peakFormsPerSec, 1)],
       ['Random events caught', formatNumber(eventsCaught)],
       ['Random events missed', formatNumber(eventsMissed)],
-      ['Restructurings survived', formatNumber(Game.restructurings || 0)],
-      ['Precedents held', formatNumber(Game.precedents || 0)]
+      ['Milestones earned', milestonesEarned + ' / ' + milestonesTotal],
+      ['Time The Department has existed', formatDuration(Date.now() - Game.gameStartTime)]
     ]);
 
-    const tierRows = Departments.tiers.map(t =>
-      '<div class="registry-row"><span class="registry-label">&nbsp;&nbsp;' +
-      Departments.getDisplayName(t) + '</span><span class="registry-value">' +
-      t.owned + '</span></div>'
-    ).join('');
+    const tierRows = Departments.tiers
+      .filter(t => !t.hidden || t.owned > 0)
+      .map(t =>
+        '<div class="registry-row"><span class="registry-label">&nbsp;&nbsp;' +
+        Departments.getDisplayName(t) + '</span><span class="registry-value">' +
+        t.owned + ' &middot; ' + formatNumber(t.effectiveRate, 1) + '/s' +
+        ' &middot; ' + formatNumber(t.totalFormsGenerated) + ' lifetime</span></div>'
+      ).join('');
 
     const current = rows([
+      ['Forms filed this run', formatNumber(Game.runFormsEarned)],
       ['Forms on hand', formatNumber(Game.forms)],
       ['Forms / sec', formatNumber(Game.formsPerSec, 1)],
       ['Forms / click', formatNumber(Game.formsPerClick, Game.formsPerClick % 1 !== 0 ? 1 : undefined)],
-      ['Directives held', Upgrades.directivesUnlocked ? formatNumber(Game.directives) : '—'],
+      ['Directives held', Upgrades.directivesUnlocked ? formatNumber(Game.directives) : '\u2014'],
       ['Departments owned', formatNumber(totalDepts)],
       ['Department tiers active', ownedTiers + ' / ' + Departments.tiers.length],
       ['Upgrades purchased', formatNumber(upgradesPurchased)],
+      ['Precedents held', formatNumber(Game.precedents || 0)],
+      ['Projected Precedents', formatNumber(projectedPrecedents)],
+      ['Time since last Restructuring', formatDuration(Date.now() - Game.runStartTime)],
       ['Active buffs', formatNumber(activeBuffs)]
     ]) + '<div class="registry-row" style="margin-top:8px"><span class="registry-label"><em>By tier:</em></span><span class="registry-value"></span></div>' + tierRows;
 
@@ -1008,6 +1022,19 @@ var NUMBER_SUFFIXES = [
   { val: 1e6,  suf: 'M' },
   { val: 1e3,  suf: 'K' }
 ];
+
+function formatDuration(ms) {
+  var sec = Math.floor(ms / 1000);
+  var days = Math.floor(sec / 86400); sec %= 86400;
+  var hrs  = Math.floor(sec / 3600);  sec %= 3600;
+  var mins = Math.floor(sec / 60);    sec %= 60;
+  var parts = [];
+  if (days > 0) parts.push(days + 'd');
+  if (hrs > 0)  parts.push(hrs + 'h');
+  if (mins > 0) parts.push(mins + 'm');
+  if (parts.length === 0) parts.push(sec + 's');
+  return parts.join(' ');
+}
 
 function formatNumber(n, decimals) {
   if (typeof decimals === 'number') return n.toFixed(decimals);

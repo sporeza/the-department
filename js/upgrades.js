@@ -241,6 +241,7 @@ const Upgrades = {
     if (Game.forms < this.CONVERSION_RATE) return false;
     Game.forms -= this.CONVERSION_RATE;
     Game.directives++;
+    Game.totalDirectivesConverted++;
     return true;
   },
 

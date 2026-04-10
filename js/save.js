@@ -13,7 +13,7 @@ const Save = {
   /** Serialise current game state into a JSON string */
   serialise() {
     return JSON.stringify({
-      version: 7,
+      version: 8,
       timestamp: Date.now(),
       game: {
         forms: Game.forms,
@@ -28,9 +28,15 @@ const Save = {
         preResetForms: Game.preResetForms,
         phase: Game.phase,
         deptName: Game.deptName,
+        totalRejections: Game.totalRejections,
+        totalDirectivesConverted: Game.totalDirectivesConverted,
+        totalPrecedentsEarned: Game.totalPrecedentsEarned,
+        peakFormsPerSec: Game.peakFormsPerSec,
+        gameStartTime: Game.gameStartTime,
+        runStartTime: Game.runStartTime,
         settings: Game.settings
       },
-      departments: Departments.tiers.map(t => ({ id: t.id, owned: t.owned })),
+      departments: Departments.tiers.map(t => ({ id: t.id, owned: t.owned, totalFormsGenerated: t.totalFormsGenerated || 0 })),
       deptNames: Object.keys(Departments.customNames).length > 0 ? Departments.customNames : undefined,
       upgrades: {
         purchased: Object.keys(Upgrades.purchased),
@@ -105,18 +111,26 @@ const Save = {
     Game.preResetForms = (data.game && data.game.preResetForms) || 0;
     Game.phase = (data.game && data.game.phase) || 'running';
     Game.deptName = (data.game && data.game.deptName) || undefined;
+    Game.totalRejections = (data.game && data.game.totalRejections) || 0;
+    Game.totalDirectivesConverted = (data.game && data.game.totalDirectivesConverted) || 0;
+    Game.totalPrecedentsEarned = (data.game && data.game.totalPrecedentsEarned) || 0;
+    Game.peakFormsPerSec = (data.game && data.game.peakFormsPerSec) || 0;
+    Game.gameStartTime = (data.game && data.game.gameStartTime) || data.timestamp || Date.now();
+    Game.runStartTime = (data.game && data.game.runStartTime) || data.timestamp || Date.now();
 
     // Restore settings
     if (data.game && data.game.settings) {
       Object.assign(Game.settings, data.game.settings);
     }
 
-    // Restore department ownership
+    // Restore department ownership and per-tier stats
     if (data.departments) {
-      const owned = {};
-      data.departments.forEach(d => { owned[d.id] = d.owned; });
+      const savedMap = {};
+      data.departments.forEach(d => { savedMap[d.id] = d; });
       Departments.tiers.forEach(tier => {
-        tier.owned = owned[tier.id] || 0;
+        const saved = savedMap[tier.id];
+        tier.owned = (saved && saved.owned) || 0;
+        tier.totalFormsGenerated = (saved && saved.totalFormsGenerated) || 0;
       });
     }
 
