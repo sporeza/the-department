@@ -2,5 +2,5 @@
 .env
 
 # Claude code specific items
-CLAUDE.md
-.claude/*
+CLAUDE.local.md
+.claude/settings.local.json
