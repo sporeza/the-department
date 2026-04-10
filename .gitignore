@@ -1,2 +1,6 @@
 #Environment files
 .env
+
+# Claude code specific items
+CLAUDE.md
+.claude/*
