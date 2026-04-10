@@ -18,6 +18,12 @@ const Game = {
   preResetForms: 0,        // stashed before reset for Continuity of Operations
   phase: 'running',        // 'running' | 'restructuring'
   deptName: undefined,     // custom department name (left panel title)
+  settings: {
+    offlineIncome: true,
+    tickerSpeed: 'normal',       // 'slow' | 'normal' | 'fast'
+    reducedMotion: false,
+    numberFormat: 'abbreviated'  // 'full' | 'abbreviated' | 'scientific'
+  },
 
   /** Called every tick (~100ms) to accumulate passive income */
   tick(dt) {

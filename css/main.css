@@ -1819,3 +1819,40 @@ body::before {
   0%   { opacity: 1; }
   100% { opacity: 0.6; }
 }
+
+/* Reduced motion — disables non-essential animations
+   while preserving functional random-event travel.
+   Targeted rather than blanket to avoid conflicts with
+   inline animation-duration set by JS on event elements. */
+[data-reduced-motion="true"] .stamp-press,
+[data-reduced-motion="true"] .stamp-rejected,
+[data-reduced-motion="true"] .stamp-imprint,
+[data-reduced-motion="true"] .float-text,
+[data-reduced-motion="true"] .milestone-toast,
+[data-reduced-motion="true"] .event-toast,
+[data-reduced-motion="true"] .buff-value,
+[data-reduced-motion="true"] #ticker-track,
+[data-reduced-motion="true"] .event-lost-form-inner,
+[data-reduced-motion="true"] .event-inspector-inner {
+  animation: none !important;
+}
+[data-reduced-motion="true"] * {
+  transition: none !important;
+}
+/* Ticker: stop scroll, centre the single visible item */
+[data-reduced-motion="true"] #ticker-track {
+  transform: none !important;
+  justify-content: center;
+  width: 100%;
+}
+[data-reduced-motion="true"] .ticker-sep {
+  display: none !important;
+}
+[data-reduced-motion="true"] .ticker-item {
+  display: none;
+  white-space: normal;
+  text-align: center;
+}
+[data-reduced-motion="true"] .ticker-item.ticker-active {
+  display: inline;
+}

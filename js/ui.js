@@ -36,6 +36,10 @@ const UI = {
     if (Game.deptName) {
       document.getElementById('dept-name').textContent = Game.deptName;
     }
+
+    // Apply persisted settings
+    applyTickerSpeed();
+    applyReducedMotion();
   },
 
   // --- Click mechanic ---
@@ -786,7 +790,7 @@ const CentreTabs = {
               '<div class="ops-action-label">Offline Income</div>' +
               '<div class="ops-action-desc">Continue earning Forms while the tab is closed.</div>' +
             '</div>' +
-            '<label><input type="checkbox" disabled checked /> Enabled</label>' +
+            '<label><input type="checkbox" data-option="offlineIncome" checked /> Enabled</label>' +
           '</div>' +
 
           '<div class="ops-action">' +
@@ -794,7 +798,7 @@ const CentreTabs = {
               '<div class="ops-action-label">News Ticker Speed</div>' +
               '<div class="ops-action-desc">Pace at which the ticker scrolls.</div>' +
             '</div>' +
-            '<select class="ops-input" disabled><option>Slow</option><option selected>Normal</option><option>Fast</option></select>' +
+            '<select class="ops-input" data-option="tickerSpeed"><option value="slow">Slow</option><option value="normal" selected>Normal</option><option value="fast">Fast</option></select>' +
           '</div>' +
 
           '<div class="ops-action">' +
@@ -802,7 +806,7 @@ const CentreTabs = {
               '<div class="ops-action-label">Reduced Motion</div>' +
               '<div class="ops-action-desc">Disables non-essential animations.</div>' +
             '</div>' +
-            '<label><input type="checkbox" disabled /> Enabled</label>' +
+            '<label><input type="checkbox" data-option="reducedMotion" /> Enabled</label>' +
           '</div>' +
 
           '<div class="ops-action">' +
@@ -810,14 +814,26 @@ const CentreTabs = {
               '<div class="ops-action-label">Number Formatting</div>' +
               '<div class="ops-action-desc">How large numbers are displayed throughout The Department.</div>' +
             '</div>' +
-            '<select class="ops-input" disabled><option>Full</option><option selected>Abbreviated</option><option>Scientific</option></select>' +
+            '<select class="ops-input" data-option="numberFormat"><option value="full">Full</option><option value="abbreviated" selected>Abbreviated</option><option value="scientific">Scientific</option></select>' +
           '</div>' +
-
-          '<p class="ops-options-note">Pending implementation. Plumbing has been filed.</p>' +
         '</div>' +
       '</div>';
 
     this.bindOperations();
+    this.syncOptionsControls();
+  },
+
+  syncOptionsControls() {
+    var view = this._views.operations;
+    if (!view) return;
+    var oi = view.querySelector('[data-option="offlineIncome"]');
+    if (oi) oi.checked = Game.settings.offlineIncome;
+    var rm = view.querySelector('[data-option="reducedMotion"]');
+    if (rm) rm.checked = Game.settings.reducedMotion;
+    var ts = view.querySelector('[data-option="tickerSpeed"]');
+    if (ts) ts.value = Game.settings.tickerSpeed;
+    var nf = view.querySelector('[data-option="numberFormat"]');
+    if (nf) nf.value = Game.settings.numberFormat;
   },
 
   bindOperations() {
@@ -882,6 +898,33 @@ const CentreTabs = {
       setStatus('wipe', 'Dissolution complete. The Department will continue.');
       setTimeout(() => location.reload(), 600);
     });
+
+    // --- Options bindings ---
+    var oiCheck = view.querySelector('[data-option="offlineIncome"]');
+    if (oiCheck) oiCheck.addEventListener('change', function() {
+      Game.settings.offlineIncome = this.checked;
+      Save.save();
+    });
+
+    var tsSelect = view.querySelector('[data-option="tickerSpeed"]');
+    if (tsSelect) tsSelect.addEventListener('change', function() {
+      Game.settings.tickerSpeed = this.value;
+      applyTickerSpeed();
+      Save.save();
+    });
+
+    var rmCheck = view.querySelector('[data-option="reducedMotion"]');
+    if (rmCheck) rmCheck.addEventListener('change', function() {
+      Game.settings.reducedMotion = this.checked;
+      applyReducedMotion();
+      Save.save();
+    });
+
+    var nfSelect = view.querySelector('[data-option="numberFormat"]');
+    if (nfSelect) nfSelect.addEventListener('change', function() {
+      Game.settings.numberFormat = this.value;
+      Save.save();
+    });
   },
 
   refreshOperationsStatus() {
@@ -890,11 +933,95 @@ const CentreTabs = {
 };
 
 // --- Helpers ---
-function formatNumber(n, decimals) {
-  if (typeof decimals === 'number') {
-    return n.toFixed(decimals);
+
+function applyTickerSpeed() {
+  var track = document.getElementById('ticker-track');
+  if (!track) return;
+  var speeds = { slow: '70s', normal: '45s', fast: '25s' };
+  track.style.animationDuration = speeds[Game.settings.tickerSpeed] || '45s';
+}
+
+var _tickerCycleId = null;
+var _tickerCycleIndex = 0;
+
+function applyReducedMotion() {
+  var enabled = Game.settings.reducedMotion;
+  document.body.setAttribute('data-reduced-motion', enabled ? 'true' : 'false');
+
+  // Ticker: switch between scroll animation and static cycling
+  if (enabled) {
+    startTickerCycle();
+  } else {
+    stopTickerCycle();
   }
-  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+}
+
+function startTickerCycle() {
+  stopTickerCycle();
+  _tickerCycleIndex = 0;
+  tickerCycleAdvance();
+  _tickerCycleId = setInterval(tickerCycleAdvance, 4000);
+}
+
+function tickerCycleAdvance() {
+  var track = document.getElementById('ticker-track');
+  if (!track) return;
+  var items = track.querySelectorAll('.ticker-item');
+  if (items.length === 0) return;
+
+  // Remove active class from all items
+  for (var i = 0; i < items.length; i++) items[i].classList.remove('ticker-active');
+
+  // Wrap index if items were added/removed
+  if (_tickerCycleIndex >= items.length) _tickerCycleIndex = 0;
+  items[_tickerCycleIndex].classList.add('ticker-active');
+  _tickerCycleIndex = (_tickerCycleIndex + 1) % items.length;
+}
+
+function stopTickerCycle() {
+  if (_tickerCycleId) {
+    clearInterval(_tickerCycleId);
+    _tickerCycleId = null;
+  }
+  // Remove ticker-active class (CSS handles visibility via data-reduced-motion)
+  var track = document.getElementById('ticker-track');
+  if (!track) return;
+  var items = track.querySelectorAll('.ticker-item');
+  for (var i = 0; i < items.length; i++) items[i].classList.remove('ticker-active');
+}
+
+var NUMBER_SUFFIXES = [
+  { val: 1e48, suf: 'QiDc' },
+  { val: 1e45, suf: 'QaDc' },
+  { val: 1e42, suf: 'TDc' },
+  { val: 1e39, suf: 'DDc' },
+  { val: 1e36, suf: 'UDc' },
+  { val: 1e33, suf: 'Dc' },
+  { val: 1e30, suf: 'No' },
+  { val: 1e27, suf: 'Oc' },
+  { val: 1e24, suf: 'Sp' },
+  { val: 1e21, suf: 'Sx' },
+  { val: 1e18, suf: 'Qi' },
+  { val: 1e15, suf: 'Qa' },
+  { val: 1e12, suf: 'T' },
+  { val: 1e9,  suf: 'B' },
+  { val: 1e6,  suf: 'M' },
+  { val: 1e3,  suf: 'K' }
+];
+
+function formatNumber(n, decimals) {
+  if (typeof decimals === 'number') return n.toFixed(decimals);
+
+  var fmt = Game.settings.numberFormat;
+  if (fmt === 'full') return Math.floor(n).toLocaleString();
+  if (fmt === 'scientific') return n >= 1e3 ? n.toExponential(2) : Math.floor(n).toLocaleString();
+
+  // 'abbreviated' (default) — use suffix table, fall back to scientific for huge numbers
+  if (n >= 1e51) return n.toExponential(2);
+  for (var i = 0; i < NUMBER_SUFFIXES.length; i++) {
+    if (n >= NUMBER_SUFFIXES[i].val) {
+      return (n / NUMBER_SUFFIXES[i].val).toFixed(2) + ' ' + NUMBER_SUFFIXES[i].suf;
+    }
+  }
   return Math.floor(n).toLocaleString();
 }

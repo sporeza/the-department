@@ -27,7 +27,8 @@ const Save = {
         precedentUpgrades: Game.precedentUpgrades,
         preResetForms: Game.preResetForms,
         phase: Game.phase,
-        deptName: Game.deptName
+        deptName: Game.deptName,
+        settings: Game.settings
       },
       departments: Departments.tiers.map(t => ({ id: t.id, owned: t.owned })),
       deptNames: Object.keys(Departments.customNames).length > 0 ? Departments.customNames : undefined,
@@ -105,6 +106,11 @@ const Save = {
     Game.phase = (data.game && data.game.phase) || 'running';
     Game.deptName = (data.game && data.game.deptName) || undefined;
 
+    // Restore settings
+    if (data.game && data.game.settings) {
+      Object.assign(Game.settings, data.game.settings);
+    }
+
     // Restore department ownership
     if (data.departments) {
       const owned = {};
@@ -150,8 +156,8 @@ const Save = {
     // Recalculate effects from restored upgrades (sets formsPerClick + dept multipliers)
     Upgrades.applyEffects();
 
-    // Offline income — award passive income for time away (skip if mid-restructuring)
-    if (Game.phase === 'running' && data.timestamp && Game.formsPerSec > 0) {
+    // Offline income — award passive income for time away (skip if mid-restructuring or disabled)
+    if (Game.settings.offlineIncome && Game.phase === 'running' && data.timestamp && Game.formsPerSec > 0) {
       const elapsed = (Date.now() - data.timestamp) / 1000; // seconds
       if (elapsed > 1) {
         const offline = Game.formsPerSec * elapsed;

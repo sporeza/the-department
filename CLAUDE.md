@@ -42,10 +42,11 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Ceremonial overlay — 3.5s deadpan quote card on Restructuring, then fades to reveal the phase screen
 - Game loop gated by `Game.phase` ('running' | 'restructuring') — all ticking stops during the phase
 - Precedents ⌖ stat row in left panel (visible after first Restructuring)
-- Operations tab — manual save (File Current State), export save string (Submit to Archive), import save string (Retrieve from Archive), wipe save with CONFIRMED prompt (Initiate Total Dissolution); Options sub-section is a non-functional visual stub
+- Operations tab — manual save (File Current State), export save string (Submit to Archive), import save string (Retrieve from Archive), wipe save with CONFIRMED prompt (Initiate Total Dissolution)
+- Operations → Options — four fully wired settings persisted in save: offline income toggle (gates offline earnings on load), news ticker speed (Slow 70s / Normal 45s / Fast 25s via inline animationDuration), reduced motion (targeted `animation: none` on decorative elements, preserves functional event travel; ticker switches to 4s static cycling via `.ticker-active` class), number formatting (Full locale / Abbreviated with 16 suffixes K→QiDc + scientific fallback above 1e48 / Scientific notation)
+- `Game.settings` object holds runtime options, serialised inside `game` block in save data, restored via `Object.assign` on load
 
 ### What's not done yet (PoC scope)
-- Operations → Options plumbing (offline income toggle, news ticker speed, reduced motion, number formatting) — UI is currently a visual stub, none of the toggles are wired up
 - Operations → Registry plumbing (tracking all the metrics: random events tracking, restructuring tracking)
 - Update UI with new/toggle options for +10/+50/+100 for both shop purchases and directives exchanges.
 - News ticker dynamic content beyond milestones (30+ static lines)
@@ -59,11 +60,11 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - `index.html` — single-page entry point, loads all CSS and JS
 - `css/main.css` — layout, panels, stamp animations, form box, stats, shop, ticker
 - `css/floorplan.css` — floor plan rooms, corridors, liminal spaces, ambient glow
-- `js/game.js` — Game object (state + tick), requestAnimationFrame loop, DOMContentLoaded init orchestration
+- `js/game.js` — Game object (state + settings + tick), requestAnimationFrame loop, DOMContentLoaded init orchestration
 - `js/departments.js` — Departments object with 9 tier definitions (8 base + hidden Jurisdiction), cost scaling, buy logic, income recalculation
 - `js/upgrades.js` — Upgrades object: 17 upgrade definitions (click/dept-mult/passive/flavour/prestige-unlock), Directives unlock/conversion, purchase logic, effect calculation
 - `js/milestones.js` — Milestones object: 33 milestone definitions, condition checking, toast notifications, ticker injection, save/restore
-- `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, right-panel tab switching, department renaming. Also hosts `CentreTabs` controller (centre panel tab bar + Registry/Honours/Restructuring/Operations view rendering and Save/Data actions)
+- `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, right-panel tab switching, department renaming. Also hosts `CentreTabs` controller (centre panel tab bar + Registry/Honours/Restructuring/Operations view rendering, Save/Data actions, Options bindings). Global helpers: `formatNumber()` (with `NUMBER_SUFFIXES` table), `applyTickerSpeed()`, `applyReducedMotion()`, ticker cycling functions
 - `js/floorplan.js` — FloorPlan object: dynamic room/corridor/liminal-space rendering, organic growth, snapshot-diffing to skip unchanged frames
 - `js/events.js` — RandomEvents object: two-tier spawn timers, event definitions (Lost Form, Visiting Inspector), spawn/catch/miss logic, buff system, buff UI, save/restore
 - `js/restructuring.js` — Restructuring object: prestige system, Precedent upgrade definitions (5), phase screen overlay, ceremonial overlay, perform/endPhase/enterPhaseFromLoad lifecycle, buy/afford helpers
