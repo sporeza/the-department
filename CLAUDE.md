@@ -31,7 +31,7 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Upgrades tab in right panel with available/purchased sections, auto-refreshing. Available list is partitioned by category (Click / Departments / Synergies / Passive / Flavour / Prestige) under subtle group headers; synergy cards carry a green left-border accent, deep synergies a heavier ink border.
 - Generic synergy effect engine — every synergy definition has `effect.type: 'synergy'` and an `effect.bonuses[]` array of rules. Supported bonus kinds: `mult-per-owned`, `mult-per-grouped` (capped stacks, e.g. Operational Continuity's "+20% per 5 Procedures, max 10 stacks"), `mult-flat`, `mult-flat-per-owned` (tier-aware, converts flat Forms/sec per source-owned into a multiplier using target `baseRate`), `global-mult`, `milestone-stacking` (reads `Game.permanentRecordStacks`), and `directives-trickle`. `Upgrades.getDeptMultiplier(tierId)` resolves them per tier and wraps every contribution in `_scaleSynergyFactor()` so Doctrine of Precedent's 30-minute ramp applies uniformly.
 - Permanent Record stacking — `Game.permanentRecordStacks` increments in `Milestones.trigger()` whenever Permanent Record is owned; cleared on Restructuring; applied as a global `milestone-stacking` synergy bonus (+0.5% per stack).
-- Milestone system — 33 milestones across 6 categories (Forms earned, first dept purchases, dept quantities, Forms/sec, clicks, total depts, Directives), toast notifications, ticker integration, persisted in save
+- Milestone system — 93 milestones across ~15 themed sections (Forms earned, first dept purchases, dept quantities, Forms/sec, clicks, total depts, Directives, synergies, prestige/Restructuring count, random events, stamp rejections, time-played, peak/stacks, completion tracks, hidden/absurd). Supports optional `hidden: true` flag — hidden milestones are completely absent from the Honours Board grid and denominator until fired. `Milestones.trigger()` also bumps `Game.permanentRecordStacks` when the Permanent Record synergy is owned. `Game.firstRestructureMs` is captured set-once in `Restructuring.perform()` before the run-time reset, feeding the hidden "Hasty Legacy" speedrun milestone. Toast notifications, ticker integration, persisted in save.
 - Department renaming — double-click "The Department" title (left panel) or any tier name (right panel) for inline rename, persisted in save
 - Random events system — two-tier spawn timers (Tier 1: 2–5 min, Tier 2: 15–30 min), unlocks at first Filing Cabinet, one active event at a time, clickable in centre panel, toast + ticker on catch/miss
 - Six random events across two tiers:
@@ -60,8 +60,7 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Bulk buy controls — global `.qty-toggle` segmented controls (x1 / x10 / x50 / x100 / MAX) above the department shop and next to the Directives convert button; persisted in `Game.settings.buyQuantity` / `convertQuantity`; `Departments.getBulkCost`/`getMaxAffordable`/`buyBulk` do term-by-term summation to match single-unit floor rounding; `Upgrades.convertToDirectives(n)` handles linear bulk conversion; MAX is the only partial-purchase mode, fixed quantities stay disabled until fully affordable
 
 ### What's not done yet (PoC scope)
-- Additional milestones beyond the current 33 (achievements for synergies, deep synergies, Restructuring count, etc.)
-- Balance pass on synergy and dept-mult costs (current values are placeholders)
+- Balance pass on synergy and dept-mult costs (current values are placeholders); also ties into the "infinity" overflow issue after many Restructurings
 
 ### Open bugs/known issues
 
@@ -79,7 +78,7 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - `js/departments.js` — Departments object with 9 tier definitions (8 base + hidden Jurisdiction), cost scaling, buy logic, income recalculation
 - `js/upgrades.js` — Upgrades object: ~70 upgrade definitions across categories `click`, `dept-mult` (5 milestones × 9 tiers), `synergy` (10 standard + 2 deep, plus the `tier: 'deep'` marker), `passive`, `flavour`, `prestige`. Directives unlock/conversion, purchase logic, effect calculation. Key functions: `applyEffects()` (click power + delegates income to Departments), `getDeptMultiplier(tierId)` (resolves dept-mult + global + synergy bonuses through `_scaleSynergyFactor()`), `getSynergyCount()` (Interlocking Directorates), `tickDirectivesTrickle(dt)` (Terms of Reference accumulator flushed to `Game.directives`), `_scaleSynergyFactor(factor)` (Doctrine ramp).
 - `js/ticker.js` — Ticker object: capped deduplicated queue (`MAX_ITEMS: 28`), `push(text, { source, dedupeKey, pinned })` entry point, dt-driven dynamic line generator (`tick(dt)` → `fireDynamicLine()` on 35–75s jittered cadence), 100 dynamic line definitions across 8 progression tiers gated by `_currentTier()`, token resolver (`resolveTokens()` + `_resolveStat()` whitelist), `rebuildDOM()` that preserves `animationDuration` on `#ticker-track`, `seedInitialQueue()` with the 6 canonical seed lines, save/restore
-- `js/milestones.js` — Milestones object: 33 milestone definitions, condition checking, toast notifications, pushes to Ticker (`source: 'milestone'`), save/restore
+- `js/milestones.js` — Milestones object: 93 milestone definitions, condition checking, toast notifications, pushes to Ticker (`source: 'milestone'`), save/restore. Optional `hidden: true` field on definitions; `UI.renderHonours()` filters hidden+unfired entries out of the grid and the denominator count.
 - `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, right-panel tab switching, department renaming. Also hosts `CentreTabs` controller (centre panel tab bar + Registry/Honours/Restructuring/Operations view rendering, Save/Data actions, Options bindings). Global helpers: `formatNumber()` (with `NUMBER_SUFFIXES` table), `formatDuration()`, `applyTickerSpeed()`, `applyReducedMotion()`, reduced-motion ticker cycling functions. Exposes `UI.resetTickerCycleIndex()` so `Ticker.rebuildDOM` can reset the cycle after a DOM rewrite.
 - `js/floorplan.js` — FloorPlan object: dynamic room/corridor/liminal-space rendering, organic growth, snapshot-diffing to skip unchanged frames
 - `js/events.js` — RandomEvents object: two-tier spawn timers, six event definitions (Lost Form, Urgent Memo, Escaped Intern, Visiting Inspector, Policy Window, Mysterious Package). Each event's `spawn()` is responsible for wiring its own click handler (multi-choice events like Policy Window open a modal and call `catchEvent(choiceKey)` from its buttons). Buff system supports `scope: 'income' | 'click'` — click buffs route through `Upgrades.applyEffects()` so Forms/click stays in sync. Policy Window uses `_openPolicyModal(pair)` / `_cleanupPolicyModal()` helpers and ticks a draining `.event-policy-timer-bar` each frame. Mysterious Package rolls a weighted outcome at catch time (Directive outcome is filtered out when `Upgrades.directivesUnlocked` is false). Catch/miss pushes dedupe by event id so repeat catches can't flood the ticker.
@@ -111,3 +110,47 @@ Three-panel layout: left (click zone + stats), centre (organic office floor plan
 ## PoC Scope (from GDD)
 
 Must-haves for a playable proof of concept: click mechanic with 5 upgrades, 5 department tiers, ~15 upgrades, milestone system (20+), news ticker (30+ lines), simplified living floor plan, localStorage save/load, offline income calculation.
+
+## Post-PoC Extension Ideas (out of scope for now)
+
+Brainstorm bucket for things that would make The Department a *game* rather than a proof of concept. Not prioritised, not committed to — just a catch-all so ideas aren't lost between sessions. Feel free to add, remove, promote into proper work.
+
+### Content expansion
+- **More department tiers beyond The Jurisdiction** — e.g. The Precedent, The Crown Appointment, The Founding Charter. Each would need a role in the synergy graph, not just bigger numbers.
+- **More random events** — a third tier that only unlocks post-Restructuring. Candidates: The Audit (drains a % of Forms unless clicked away), The Whistleblower (offers a one-time Directive windfall but reduces passive income for 5 min), The Filing Strike (pauses a random tier for 30s), The Intern Uprising (click minigame).
+- **Named staff / personalities** — occasionally a specific named Intern, Deputy, or Commissioner shows up as a one-shot event with dialogue. Deepens the "living organism" feel without needing a proper narrative.
+- **Daily flavour** — one-line office gossip or memo that rotates each real-world day, seeded from the date. Tiny cost, big cosiness.
+- **Unlockable office skins / palettes** — milestones or Restructuring counts unlock alternate colour schemes (Night Shift / Soviet Brutalist / 1970s Carpet). Cosmetic only.
+
+### New systems
+- **Active abilities** — cooldown-gated player actions. "Call an All-Staff Meeting" (×3 click power 30s), "Emergency Requisition" (instant 60s of passive income), "Shred a Cabinet" (dissolve a Filing Cabinet for an emergency Forms burst). Adds a layer of *play* between idle sessions.
+- **Meta-prestige ("The Audit")** — second prestige layer above Restructuring. Reset all Precedents for "Commissions" that unlock structural changes (new tiers, new upgrade slots, new event types). Gives long-term goals to players who've maxed the current loop.
+- **Negative / crisis events** — debuffs, forced choices, timed cleanups. Currently every random event is neutral-to-positive; adding stakes would make the buff system feel earned.
+- **Department specialisation paths** — a mid-game choice to pivot The Department toward one of three archetypes (Bureaucratic / Legalistic / Technocratic), each modifying synergy behaviour. Lightweight build variety.
+- **Milestone-driven rewards** — right now milestones are pure flavour + Permanent Record fuel. Some could grant a small Directive trickle, a one-time Precedent, or unlock a cosmetic, turning the Honours Board into a real progression vector.
+- **A second click target** — e.g. a "triage" tray that appears intermittently and rewards dual-clicking both stamps in rhythm. Active-play richness without making idle worse.
+
+### Depth / simulation
+- **Multi-floor building** — the floor plan grows vertically once horizontal space is full. Aesthetic payoff for late-game sprawl.
+- **Inter-tier paperwork flows** — visible paper moving along corridors between departments based on their effective rates. Mostly cosmetic but sells the "living organism" metaphor.
+- **Weather in the archive** — pure joke: the existing "The Archive Breathes" milestone already implies seasonal weather between shelving units. Make it literal with subtle CSS gradients shifting through the day.
+
+### Balance & economy
+- **Proper balance pass** — resolves the "infinity overflow" bug after many Restructurings. Likely needs BigNumber or capped exponent notation plus retuned synergy/dept-mult costs.
+- **Rebalance Permanent Record** — now that the milestone count jumped from 33 to 93, its per-stack value (+0.5% global) should probably halve or be curve-capped.
+- **Event frequency tuning** — once crisis events exist, the 2–5 min / 15–30 min spawn windows will need rethinking.
+
+### Polish & UX
+- **Proper onboarding / tutorial** — a first-time player currently has no hand-holding. A few ghost hints ("try stamping the form", "your first Intern costs 15 Forms") would carry new players through the first five minutes.
+- **Accessibility** — screen-reader labels, keyboard navigation for the centre tabs, high-contrast palette toggle, focusable buttons with visible focus rings.
+- **Sound design** — stamp thud, paper rustle, distant humming filing cabinets, ticker teletype. The deadpan tone would benefit from audio *a lot*.
+- **Statistics charts** — Registry tab shows numbers; an optional graphs tab could show Forms/sec over time, tier contribution pie chart, Precedents earned per Restructuring. Pure player candy.
+- **Multiple save slots / cloud save** — currently one localStorage slot. Multiple slots unlock experimentation; cloud sync enables cross-device play.
+- **Mobile / touch layout** — the three-panel layout doesn't collapse well on narrow viewports. A dedicated stacked layout would open the audience considerably.
+- **Keyboard shortcuts** — space to stamp, B to buy max, Tab to switch centre tabs. For the power players.
+- **Modding / content JSON** — lift departments, upgrades, milestones, events into a JSON file so the community can fork their own Departments (The University, The Hospital Trust, The HOA…).
+
+### Narrative / tone
+- **A buried story thread** — rare milestones hint at something older beneath the Department. What was here before the first Intern? Who wrote the original charter? Never answered directly; just enough to make players feel watched.
+- **End-of-run epitaphs** — the Ceremonial Overlay currently shows a generic deadpan quote. Swap in randomised per-run epitaphs that reference the departing Department's actual stats ("The Department processed 4.2 million Forms and hired 73 Interns. It will not be missed. It will not be remembered. It will be filed.").
+- **Achievements that lie** — a handful of milestones whose text is contradicted by reality. ("The Department has always had exactly 42 Sub-Committees. It has never had any other number.") Leans into the tone.

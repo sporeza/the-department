@@ -696,7 +696,8 @@ const CentreTabs = {
     const view = this._views.honours;
     if (!view) return;
 
-    const defs = Milestones.definitions || [];
+    const allDefs = Milestones.definitions || [];
+    const defs = allDefs.filter(m => !m.hidden || Milestones.triggered[m.id]);
     const earnedCount = defs.filter(m => Milestones.triggered[m.id]).length;
 
     const cards = defs.map(m => {

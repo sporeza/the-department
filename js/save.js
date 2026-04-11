@@ -37,6 +37,7 @@ const Save = {
         gameStartTime: Game.gameStartTime,
         runStartTime: Game.runStartTime,
         permanentRecordStacks: Game.permanentRecordStacks || 0,
+        firstRestructureMs: Game.firstRestructureMs || 0,
         settings: Game.settings
       },
       departments: Departments.tiers.map(t => ({ id: t.id, owned: t.owned, totalFormsGenerated: t.totalFormsGenerated || 0 })),
@@ -128,6 +129,7 @@ const Save = {
     Game.gameStartTime = (data.game && data.game.gameStartTime) || data.timestamp || Date.now();
     Game.runStartTime = (data.game && data.game.runStartTime) || data.timestamp || Date.now();
     Game.permanentRecordStacks = (data.game && data.game.permanentRecordStacks) || 0;
+    Game.firstRestructureMs = (data.game && data.game.firstRestructureMs) || 0;
 
     // Restore settings
     if (data.game && data.game.settings) {

@@ -25,6 +25,7 @@ const Game = {
   gameStartTime: Date.now(),   // timestamp of first game start (never reset)
   runStartTime: Date.now(),    // timestamp of current run start (reset on Restructuring)
   permanentRecordStacks: 0,    // milestone count since last run start, used by Permanent Record synergy
+  firstRestructureMs: 0,       // duration of first-ever run (ms), captured once in Restructuring.perform()
   settings: {
     offlineIncome: true,
     tickerSpeed: 'normal',       // 'slow' | 'normal' | 'fast'

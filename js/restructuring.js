@@ -151,6 +151,9 @@ const Restructuring = {
     Game.runFormsEarned = 0;
     Game.formsPerClick = 1;
     Game.formsPerSec = 0;
+    if (!Game.firstRestructureMs) {
+      Game.firstRestructureMs = Date.now() - Game.runStartTime;
+    }
     Game.runStartTime = Date.now();
     Game.permanentRecordStacks = 0;
     Upgrades.directivesTrickleAccumulator = 0;
