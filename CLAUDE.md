@@ -66,9 +66,9 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 ### Open bugs/known issues
 
 - With Reduced Motion option enabled: Clicking on the stamp/form doesn't clear the floating text.
-- The UI numbers volumes on the left for rates (forms/click and forms/sec) are not shortened, even with the option for abbreviated number formatting enabled.
+- The UI numbers volumes on the left for rates (forms/click and forms/sec) are not shortened, even with the option for abbreviated number formatting enabled. Same for the on-hover department tooltips in the floor plan.
 - The on-hover floor plan department tooltips are aligned with the tilt of the floorplan itself - not nice UI feeling. Need to change to no tilt.
-
+- After enough restructurings and multipliers, the incrementer increases to "infinity" and breaks the game. Might be addressed in balance pass.
 
 ## Tech Stack & File Structure
 
