@@ -253,7 +253,7 @@ const Milestones = {
   trigger(m) {
     this.triggered[m.id] = true;
     this._queue.push(m);
-    Milestones.injectTicker(m.text);
+    Ticker.push(m.text, { source: 'milestone', dedupeKey: 'ms:' + m.id });
   },
 
   /** Process queued toast notifications (called from game loop) */
@@ -284,24 +284,6 @@ const Milestones = {
       toast.classList.add('milestone-toast-exit');
       toast.addEventListener('animationend', () => toast.remove());
     }, 4000);
-  },
-
-  /** Inject milestone text into the news ticker */
-  injectTicker(text) {
-    const track = document.getElementById('ticker-track');
-    if (!track) return;
-
-    // Add separator + milestone item before the end
-    const sep = document.createElement('span');
-    sep.className = 'ticker-sep';
-    sep.textContent = '\u25C6'; // ◆
-
-    const item = document.createElement('span');
-    item.className = 'ticker-item ticker-milestone';
-    item.textContent = text;
-
-    track.appendChild(sep);
-    track.appendChild(item);
   },
 
   /** Get list of triggered milestone ids (for save) */

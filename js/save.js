@@ -8,12 +8,14 @@ const Save = {
   KEY: 'the-department-save',
   AUTO_SAVE_MS: 30000, // auto-save every 30 seconds
   _intervalId: null,
+  _beforeUnloadHandler: null,
+  _wiped: false,           // set by wipeAll() — blocks any further save() writes
   lastSavedAt: null, // timestamp of most recent successful save
 
   /** Serialise current game state into a JSON string */
   serialise() {
     return JSON.stringify({
-      version: 8,
+      version: 9,
       timestamp: Date.now(),
       game: {
         forms: Game.forms,
@@ -43,12 +45,16 @@ const Save = {
         directivesUnlocked: Upgrades.directivesUnlocked
       },
       milestones: Milestones.getTriggered(),
-      events: (typeof RandomEvents !== 'undefined') ? RandomEvents.serialise() : undefined
+      events: (typeof RandomEvents !== 'undefined') ? RandomEvents.serialise() : undefined,
+      ticker: (typeof Ticker !== 'undefined') ? Ticker.serialise() : undefined
     });
   },
 
   /** Save to localStorage. Returns true on success. */
   save() {
+    // After a wipe, refuse to write — prevents the beforeunload handler from
+    // resurrecting in-memory state into localStorage before location.reload().
+    if (this._wiped) return false;
     try {
       localStorage.setItem(this.KEY, this.serialise());
       this.lastSavedAt = Date.now();
@@ -77,8 +83,10 @@ const Save = {
     }
   },
 
-  /** Wipe all save data from localStorage. */
+  /** Wipe all save data from localStorage and block further saves until reload. */
   wipeAll() {
+    this._wiped = true;
+    this.stopAutoSave();
     this.reset();
   },
 
@@ -167,6 +175,11 @@ const Save = {
       RandomEvents.restore(data.events);
     }
 
+    // Restore ticker queue (falsy input seeds fresh). Handles v8 saves too.
+    if (typeof Ticker !== 'undefined') {
+      Ticker.restore(data.ticker);
+    }
+
     // Recalculate effects from restored upgrades (sets formsPerClick + dept multipliers)
     Upgrades.applyEffects();
 
@@ -197,14 +210,19 @@ const Save = {
   startAutoSave() {
     this._intervalId = setInterval(() => this.save(), this.AUTO_SAVE_MS);
     // Also save when the player leaves the page
-    window.addEventListener('beforeunload', () => this.save());
+    this._beforeUnloadHandler = () => this.save();
+    window.addEventListener('beforeunload', this._beforeUnloadHandler);
   },
 
-  /** Stop auto-save interval */
+  /** Stop auto-save interval and remove the beforeunload handler */
   stopAutoSave() {
     if (this._intervalId) {
       clearInterval(this._intervalId);
       this._intervalId = null;
+    }
+    if (this._beforeUnloadHandler) {
+      window.removeEventListener('beforeunload', this._beforeUnloadHandler);
+      this._beforeUnloadHandler = null;
     }
   }
 };

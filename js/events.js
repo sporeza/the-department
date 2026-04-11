@@ -211,8 +211,8 @@ const RandomEvents = {
     // Toast notification
     this.showEventToast(def.name, def.flavour, rewardText);
 
-    // Ticker
-    Milestones.injectTicker(def.flavour);
+    // Ticker (dedupes by event id — repeat catches won't fill the queue)
+    Ticker.push(def.flavour, { source: 'event-catch', dedupeKey: 'event-catch:' + def.id });
 
     // Update stats immediately
     UI.updateStats();
@@ -230,9 +230,9 @@ const RandomEvents = {
     }
     this.activeEvent = null;
 
-    // Ticker
+    // Ticker (dedupes by event id — repeat misses won't fill the queue)
     if (def && def.missText) {
-      Milestones.injectTicker(def.missText);
+      Ticker.push(def.missText, { source: 'event-miss', dedupeKey: 'event-miss:' + def.id });
     }
   },
 

@@ -100,6 +100,7 @@ function gameLoop(now) {
     Game.tick(dt);
     Milestones.check();
     Milestones.processQueue();
+    if (typeof Ticker !== 'undefined') Ticker.tick(dt);
     UI.updateStats();
     UI.updateDepartments();
     FloorPlan.update();
@@ -114,6 +115,10 @@ function gameLoop(now) {
 // Start once DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   Save.load();          // restore state before UI renders departments
+  // Seed the ticker queue if Save.load didn't (fresh boot with no saved state)
+  if (typeof Ticker !== 'undefined' && Ticker._queue.length === 0) {
+    Ticker.seedInitialQueue();
+  }
   UI.init();
   FloorPlan.init();     // build floor plan after departments are loaded
   if (typeof CentreTabs !== 'undefined') CentreTabs.init();

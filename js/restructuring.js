@@ -169,7 +169,7 @@ const Restructuring = {
     if (typeof Save !== 'undefined') Save.save();
 
     // Show ceremonial overlay (transitions into phase screen on dismiss)
-    Milestones.injectTicker(quote);
+    Ticker.push(quote, { source: 'restructuring', dedupeKey: 'restr:' + Game.restructurings });
     this.showOverlay(quote, gain);
 
     return true;

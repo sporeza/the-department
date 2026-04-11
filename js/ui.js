@@ -1063,6 +1063,10 @@ function stopTickerCycle() {
   for (var i = 0; i < items.length; i++) items[i].classList.remove('ticker-active');
 }
 
+// Exposed so Ticker.rebuildDOM can reset the reduced-motion cycle after the
+// item list changes without reaching into module-local state.
+UI.resetTickerCycleIndex = function () { _tickerCycleIndex = 0; };
+
 var NUMBER_SUFFIXES = [
   { val: 1e48, suf: 'QiDc' },
   { val: 1e45, suf: 'QaDc' },

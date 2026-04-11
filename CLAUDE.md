@@ -19,7 +19,7 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Organic floor plan — rooms inflate on first purchase, grow with ownership, mycelium corridors connect them, liminal spaces appear at thresholds
 - localStorage save/load with auto-save (30s + beforeunload), offline income on return
 - Game loop via requestAnimationFrame with delta-time ticking
-- News ticker (static content, 6 items)
+- News ticker — central `Ticker` module with capped (28-item) deduplicated queue, dt-driven dynamic line generator (35–75s cadence), and 100 brainstormed flavour lines across 8 progression tiers (Tier 0 just-started → Tier 7 deep prestige); all pushes (seed/milestone/event/restructuring/dynamic) route through `Ticker.push(text, { source, dedupeKey })`; token interpolation supports `{stat:<name>}`, `{owned:<tierId>}`, `{deptName:<tierId>}`, `{deptNameLower:<tierId>}`, `{gameName}` (honours custom renames); queue persisted in save v9; dedupeKeys fix the event-catch/miss duplication bug
 - Upgrades system — Directives (◈) resource with manual conversion (500 Forms → 1 Directive), unlocks at first Sub-Committee + 500 total Forms
 - 5 click upgrades (Forms currency): Ballpoint Pen, Fresh Ink Pad, Carbon Copy, The In-Tray, Institutional Memory
 - 8 department multiplier upgrades (Directives currency): one per tier at own-1 milestone, each ×2 output
@@ -54,7 +54,6 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Bulk buy controls — global `.qty-toggle` segmented controls (x1 / x10 / x50 / x100 / MAX) above the department shop and next to the Directives convert button; persisted in `Game.settings.buyQuantity` / `convertQuantity`; `Departments.getBulkCost`/`getMaxAffordable`/`buyBulk` do term-by-term summation to match single-unit floor rounding; `Upgrades.convertToDirectives(n)` handles linear bulk conversion; MAX is the only partial-purchase mode, fixed quantities stay disabled until fully affordable
 
 ### What's not done yet (PoC scope)
-- News ticker dynamic content beyond milestones (30+ static lines)
 - Synergy upgrades
 - Additional department multiplier tiers (10/25/50/100 ownership milestones)
 - Additional random events.
@@ -62,7 +61,6 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 ### Open bugs/known issues
 
 - With Reduced Motion option enabled: Clicking on the stamp/form doesn't clear the floating text.
-- Issue with random events keep adding their news ticker item to the overall news ticker queue, no deduping, meaning that with my reduced debug timeframes for random events, it can fill out the queue completely with random event ticker items.
 - The UI numbers volumes on the left for rates (forms/click and forms/sec) are not shortened, even with the option for abbreviated number formatting enabled.
 - The on-hover floor plan department tooltips are aligned with the tilt of the floorplan itself - not nice UI feeling. Need to change to no tilt.
 
@@ -75,17 +73,18 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - `js/game.js` — Game object (state + settings + tick), requestAnimationFrame loop, DOMContentLoaded init orchestration
 - `js/departments.js` — Departments object with 9 tier definitions (8 base + hidden Jurisdiction), cost scaling, buy logic, income recalculation
 - `js/upgrades.js` — Upgrades object: 17 upgrade definitions (click/dept-mult/passive/flavour/prestige-unlock), Directives unlock/conversion, purchase logic, effect calculation
-- `js/milestones.js` — Milestones object: 33 milestone definitions, condition checking, toast notifications, ticker injection, save/restore
-- `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, right-panel tab switching, department renaming. Also hosts `CentreTabs` controller (centre panel tab bar + Registry/Honours/Restructuring/Operations view rendering, Save/Data actions, Options bindings). Global helpers: `formatNumber()` (with `NUMBER_SUFFIXES` table), `applyTickerSpeed()`, `applyReducedMotion()`, ticker cycling functions
+- `js/ticker.js` — Ticker object: capped deduplicated queue (`MAX_ITEMS: 28`), `push(text, { source, dedupeKey, pinned })` entry point, dt-driven dynamic line generator (`tick(dt)` → `fireDynamicLine()` on 35–75s jittered cadence), 100 dynamic line definitions across 8 progression tiers gated by `_currentTier()`, token resolver (`resolveTokens()` + `_resolveStat()` whitelist), `rebuildDOM()` that preserves `animationDuration` on `#ticker-track`, `seedInitialQueue()` with the 6 canonical seed lines, save/restore
+- `js/milestones.js` — Milestones object: 33 milestone definitions, condition checking, toast notifications, pushes to Ticker (`source: 'milestone'`), save/restore
+- `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, right-panel tab switching, department renaming. Also hosts `CentreTabs` controller (centre panel tab bar + Registry/Honours/Restructuring/Operations view rendering, Save/Data actions, Options bindings). Global helpers: `formatNumber()` (with `NUMBER_SUFFIXES` table), `formatDuration()`, `applyTickerSpeed()`, `applyReducedMotion()`, reduced-motion ticker cycling functions. Exposes `UI.resetTickerCycleIndex()` so `Ticker.rebuildDOM` can reset the cycle after a DOM rewrite.
 - `js/floorplan.js` — FloorPlan object: dynamic room/corridor/liminal-space rendering, organic growth, snapshot-diffing to skip unchanged frames
-- `js/events.js` — RandomEvents object: two-tier spawn timers, event definitions (Lost Form, Visiting Inspector), spawn/catch/miss logic, buff system, buff UI, save/restore
+- `js/events.js` — RandomEvents object: two-tier spawn timers, event definitions (Lost Form, Visiting Inspector), spawn/catch/miss logic, buff system, buff UI, save/restore; catch/miss pushes dedupe by event id so repeat catches can't flood the ticker
 - `js/restructuring.js` — Restructuring object: prestige system, Precedent upgrade definitions (5), phase screen overlay, ceremonial overlay, perform/endPhase/enterPhaseFromLoad lifecycle, buy/afford helpers
-- `js/save.js` — Save object: serialise/deserialise, localStorage persistence, auto-save interval, offline income calculation
+- `js/save.js` — Save object: serialise/deserialise (save v9), localStorage persistence, auto-save interval, offline income calculation. `wipeAll()` sets a `_wiped` flag that makes subsequent `save()` calls no-op and removes the `beforeunload` listener so Dissolve can't be undone by the pre-reload auto-save.
 
 ## Architecture Notes
 
 - All game objects (`Game`, `Departments`, `Upgrades`, `Milestones`, `UI`, `FloorPlan`, `RandomEvents`, `Restructuring`, `Save`, `CentreTabs`) are plain object literals on `window` — no modules, no classes, no build step.
-- Script load order matters: `game.js` → `departments.js` → `upgrades.js` → `milestones.js` → `ui.js` → `floorplan.js` → `events.js` → `restructuring.js` → `save.js`. Init sequence in DOMContentLoaded: `Save.load()` → `UI.init()` → `FloorPlan.init()` → `CentreTabs.init()` → `RandomEvents.init()` → `Save.startAutoSave()` → phase-screen check → game loop.
+- Script load order matters: `game.js` → `ticker.js` → `departments.js` → `upgrades.js` → `milestones.js` → `ui.js` → `floorplan.js` → `events.js` → `restructuring.js` → `save.js`. Init sequence in DOMContentLoaded: `Save.load()` → seed ticker if queue empty → `UI.init()` → `FloorPlan.init()` → `CentreTabs.init()` → `RandomEvents.init()` → `Save.startAutoSave()` → phase-screen check → game loop.
 - `Game.phase` ('running' | 'restructuring') gates the main game loop. During `'restructuring'`, the full-screen phase overlay is active and all game ticking is paused.
 - Department list in the right panel is rendered dynamically from `Departments.tiers` — no hardcoded HTML for shop items.
 - Floor plan rooms are positioned with hand-tuned percentage coordinates. Corridors are calculated as pixel lines between room centres each update.
