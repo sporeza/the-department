@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **The Department** is a bureaucratic incremental/idle game (similar to Cookie Clicker) where the player grows a single-clerk office into a self-sustaining administrative organism. The tone is warm, darkly funny, and deadpan — bureaucracy as a living thing. The player is not a character; they *are* The Department.
 
-The full game design document lives at `docs/the-department-gdd.md` (v0.2).
+The full game design document lives at `docs/the-department-gdd.md` (v0.5).
 
 ## Project Status
 
@@ -22,10 +22,15 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - News ticker — central `Ticker` module with capped (28-item) deduplicated queue, dt-driven dynamic line generator (35–75s cadence), and 100 brainstormed flavour lines across 8 progression tiers (Tier 0 just-started → Tier 7 deep prestige); all pushes (seed/milestone/event/restructuring/dynamic) route through `Ticker.push(text, { source, dedupeKey })`; token interpolation supports `{stat:<name>}`, `{owned:<tierId>}`, `{deptName:<tierId>}`, `{deptNameLower:<tierId>}`, `{gameName}` (honours custom renames); queue persisted in save v9; dedupeKeys fix the event-catch/miss duplication bug
 - Upgrades system — Directives (◈) resource with manual conversion (500 Forms → 1 Directive), unlocks at first Sub-Committee + 500 total Forms
 - 5 click upgrades (Forms currency): Ballpoint Pen, Fresh Ink Pad, Carbon Copy, The In-Tray, Institutional Memory
-- 8 department multiplier upgrades (Directives currency): one per tier at own-1 milestone, each ×2 output
-- 3 passive/flavour upgrades (Directives): Redundancy Planning (+5% global), Motivational Poster (×1.001), The Memo (×1.10)
+- Full department multiplier tree (Directives currency) — one ×2 upgrade at each of 1/10/25/50/100 owned for all 9 tiers (8 base + The Jurisdiction), 45 upgrades total. Cost scales geometrically per milestone (own-1 → own-10 ×5, ×25, ×125, ×625 cost). Jurisdiction milestones only appear after Precedent of Scale unhides the tier.
+- 10 standard synergy upgrades (Directives, `category: 'synergy'`) — Misfiling Protocol, Evidence-Based Review, Review of the Review, Standing Orders, Operational Continuity, Jurisdictional Overlap, Extended Jurisdiction, Territorial Instrument, Career Trajectory, Permanent Record. Unlocked by owning combinations of two tiers. All flavour text lifted from GDD v0.5.
+- 2 deep synergy upgrades — Terms of Reference (passive 0.05 ◈/s trickle via `Upgrades.tickDirectivesTrickle` with fractional accumulator) and Regulatory Capture (pre-computed ×2.15 Oversight / ×1.378 Annex from the GDD's swap-and-multiply spec); each gated by the matching standard synergy already purchased.
+- 2 Precedent Synergies in the prestige layer — Doctrine of Precedent (15⌖, synergy bonuses start runs at 50% and ramp to 100% over 30 min via `Game.getDoctrineScale()`) and Interlocking Directorates (30⌖, ×1.25 global mult when ≥3 synergies are owned, applied as `interlockingMult` in `Departments.recalcIncome()`).
+- 5 passive/flavour upgrades (Directives): Redundancy Planning (+5% global), Motivational Poster (×1.001), The Memo (×1.10), Auto-Filing (offline income +25%), Precedent-Setting (future Restructurings yield +10% Precedents, applied in `Restructuring.calculateGain()`).
 - "The Reorganisation" upgrade (150 Directives, unlocks at Oversight Body ≥1) — gates the Restructuring prestige mechanic
-- Upgrades tab in right panel with available/purchased sections, auto-refreshing
+- Upgrades tab in right panel with available/purchased sections, auto-refreshing. Available list is partitioned by category (Click / Departments / Synergies / Passive / Flavour / Prestige) under subtle group headers; synergy cards carry a green left-border accent, deep synergies a heavier ink border.
+- Generic synergy effect engine — every synergy definition has `effect.type: 'synergy'` and an `effect.bonuses[]` array of rules. Supported bonus kinds: `mult-per-owned`, `mult-per-grouped` (capped stacks, e.g. Operational Continuity's "+20% per 5 Procedures, max 10 stacks"), `mult-flat`, `mult-flat-per-owned` (tier-aware, converts flat Forms/sec per source-owned into a multiplier using target `baseRate`), `global-mult`, `milestone-stacking` (reads `Game.permanentRecordStacks`), and `directives-trickle`. `Upgrades.getDeptMultiplier(tierId)` resolves them per tier and wraps every contribution in `_scaleSynergyFactor()` so Doctrine of Precedent's 30-minute ramp applies uniformly.
+- Permanent Record stacking — `Game.permanentRecordStacks` increments in `Milestones.trigger()` whenever Permanent Record is owned; cleared on Restructuring; applied as a global `milestone-stacking` synergy bonus (+0.5% per stack).
 - Milestone system — 33 milestones across 6 categories (Forms earned, first dept purchases, dept quantities, Forms/sec, clicks, total depts, Directives), toast notifications, ticker integration, persisted in save
 - Department renaming — double-click "The Department" title (left panel) or any tier name (right panel) for inline rename, persisted in save
 - Random events system — two-tier spawn timers (Tier 1: 2–5 min, Tier 2: 15–30 min), unlocks at first Filing Cabinet, one active event at a time, clickable in centre panel, toast + ticker on catch/miss
@@ -54,9 +59,9 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - Bulk buy controls — global `.qty-toggle` segmented controls (x1 / x10 / x50 / x100 / MAX) above the department shop and next to the Directives convert button; persisted in `Game.settings.buyQuantity` / `convertQuantity`; `Departments.getBulkCost`/`getMaxAffordable`/`buyBulk` do term-by-term summation to match single-unit floor rounding; `Upgrades.convertToDirectives(n)` handles linear bulk conversion; MAX is the only partial-purchase mode, fixed quantities stay disabled until fully affordable
 
 ### What's not done yet (PoC scope)
-- Synergy upgrades
-- Additional department multiplier tiers (10/25/50/100 ownership milestones)
-- Additional random events.
+- Additional random events (Urgent Memo, Escaped Intern, Policy Window, Mysterious Package)
+- Additional milestones beyond the current 33 (achievements for synergies, deep synergies, Restructuring count, etc.)
+- Balance pass on synergy and dept-mult costs (current values are placeholders)
 
 ### Open bugs/known issues
 
@@ -72,14 +77,14 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - `css/floorplan.css` — floor plan rooms, corridors, liminal spaces, ambient glow
 - `js/game.js` — Game object (state + settings + tick), requestAnimationFrame loop, DOMContentLoaded init orchestration
 - `js/departments.js` — Departments object with 9 tier definitions (8 base + hidden Jurisdiction), cost scaling, buy logic, income recalculation
-- `js/upgrades.js` — Upgrades object: 17 upgrade definitions (click/dept-mult/passive/flavour/prestige-unlock), Directives unlock/conversion, purchase logic, effect calculation
+- `js/upgrades.js` — Upgrades object: ~70 upgrade definitions across categories `click`, `dept-mult` (5 milestones × 9 tiers), `synergy` (10 standard + 2 deep, plus the `tier: 'deep'` marker), `passive`, `flavour`, `prestige`. Directives unlock/conversion, purchase logic, effect calculation. Key functions: `applyEffects()` (click power + delegates income to Departments), `getDeptMultiplier(tierId)` (resolves dept-mult + global + synergy bonuses through `_scaleSynergyFactor()`), `getSynergyCount()` (Interlocking Directorates), `tickDirectivesTrickle(dt)` (Terms of Reference accumulator flushed to `Game.directives`), `_scaleSynergyFactor(factor)` (Doctrine ramp).
 - `js/ticker.js` — Ticker object: capped deduplicated queue (`MAX_ITEMS: 28`), `push(text, { source, dedupeKey, pinned })` entry point, dt-driven dynamic line generator (`tick(dt)` → `fireDynamicLine()` on 35–75s jittered cadence), 100 dynamic line definitions across 8 progression tiers gated by `_currentTier()`, token resolver (`resolveTokens()` + `_resolveStat()` whitelist), `rebuildDOM()` that preserves `animationDuration` on `#ticker-track`, `seedInitialQueue()` with the 6 canonical seed lines, save/restore
 - `js/milestones.js` — Milestones object: 33 milestone definitions, condition checking, toast notifications, pushes to Ticker (`source: 'milestone'`), save/restore
 - `js/ui.js` — UI object: click handling (hit/miss detection), stamp/imprint/float animations, department list rendering, stat updates, right-panel tab switching, department renaming. Also hosts `CentreTabs` controller (centre panel tab bar + Registry/Honours/Restructuring/Operations view rendering, Save/Data actions, Options bindings). Global helpers: `formatNumber()` (with `NUMBER_SUFFIXES` table), `formatDuration()`, `applyTickerSpeed()`, `applyReducedMotion()`, reduced-motion ticker cycling functions. Exposes `UI.resetTickerCycleIndex()` so `Ticker.rebuildDOM` can reset the cycle after a DOM rewrite.
 - `js/floorplan.js` — FloorPlan object: dynamic room/corridor/liminal-space rendering, organic growth, snapshot-diffing to skip unchanged frames
 - `js/events.js` — RandomEvents object: two-tier spawn timers, event definitions (Lost Form, Visiting Inspector), spawn/catch/miss logic, buff system, buff UI, save/restore; catch/miss pushes dedupe by event id so repeat catches can't flood the ticker
-- `js/restructuring.js` — Restructuring object: prestige system, Precedent upgrade definitions (5), phase screen overlay, ceremonial overlay, perform/endPhase/enterPhaseFromLoad lifecycle, buy/afford helpers
-- `js/save.js` — Save object: serialise/deserialise (save v9), localStorage persistence, auto-save interval, offline income calculation. `wipeAll()` sets a `_wiped` flag that makes subsequent `save()` calls no-op and removes the `beforeunload` listener so Dissolve can't be undone by the pre-reload auto-save.
+- `js/restructuring.js` — Restructuring object: prestige system, 7 Precedent upgrade definitions (5 classic + Doctrine of Precedent + Interlocking Directorates), phase screen overlay, ceremonial overlay, perform/endPhase/enterPhaseFromLoad lifecycle, buy/afford helpers. `calculateGain()` applies Precedent-Setting's +10% bonus; `perform()` resets `Game.permanentRecordStacks` and `Upgrades.directivesTrickleAccumulator` alongside the usual run state.
+- `js/save.js` — Save object: serialise/deserialise (save v10), localStorage persistence, auto-save interval, offline income calculation. v10 persists `Game.permanentRecordStacks` and `Upgrades.directivesTrickleAccumulator` with `|| 0` defaults so v9 saves load cleanly. Auto-Filing upgrade adds +25% to offline income in the load path. `wipeAll()` sets a `_wiped` flag that makes subsequent `save()` calls no-op and removes the `beforeunload` listener so Dissolve can't be undone by the pre-reload auto-save.
 
 ## Architecture Notes
 
@@ -96,8 +101,8 @@ Core gameplay loop is functional. The player can click to earn Forms, buy depart
 - **Click action**: "APPROVE" rubber stamp onto a form box. Clean stamps generate Forms; mis-stamps (outside box) trigger rejection animation, no reward. Hit area stays generous.
 - **Resources**: Forms (✦, primary), Directives (◈, mid-game manual conversion from Forms), Precedents (⌖, prestige meta-currency).
 - **Departments**: 9 tiers (Intern → The Mandate + hidden The Jurisdiction), each with exponential cost scaling (~1.15×) and passive Forms/sec generation. The Jurisdiction unlocked by Precedent of Scale.
-- **Upgrades**: Department multipliers (at ownership milestones 1/10/25/50/100), synergy upgrades, passive behaviour changes, flavour/comedy upgrades. Purchased with Directives. "The Reorganisation" (150◈) gates the prestige system.
-- **Prestige ("Restructuring")**: Full ascension-phase system. Resets Forms/Directives/departments/upgrades; awards Precedents based on `floor(sqrt(runFormsEarned / 1,000,000))`. Enters a full-screen phase overlay where the player spends Precedents on 5 permanent upgrades before starting the next cycle. Each Precedent also gives permanent +1% compounding multiplier.
+- **Upgrades**: Department multipliers at ownership milestones 1/10/25/50/100 (all 9 tiers), 10 standard synergies + 2 deep synergies unlocked by tier-combination thresholds, passive behaviour changes, flavour/comedy upgrades. Purchased with Directives. "The Reorganisation" (150◈) gates the prestige system.
+- **Prestige ("Restructuring")**: Full ascension-phase system. Resets Forms/Directives/departments/non-prestige upgrades + run-local state (`permanentRecordStacks`, `directivesTrickleAccumulator`); awards Precedents based on `floor(sqrt(runFormsEarned / 1,000,000))` with an optional +10% from Precedent-Setting. Enters a full-screen phase overlay where the player spends Precedents on 7 permanent upgrades (5 classic + 2 Precedent Synergies) before starting the next cycle. Each Precedent also gives permanent +1% compounding multiplier.
 
 ## Visual Design
 
