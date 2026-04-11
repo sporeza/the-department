@@ -810,7 +810,10 @@ const Upgrades = {
     const precMult = Game.getPrecedentMultiplier ? Game.getPrecedentMultiplier() : 1;
     const estProcMult = (Game.precedentUpgrades && Game.precedentUpgrades['established-procedure']) ? 3 : 1;
     const eternalMult = (Game.precedentUpgrades && Game.precedentUpgrades['the-eternal-mandate']) ? 2 : 1;
-    Game.formsPerClick = clickBase * clickMult * (hasDeptBonus ? (1 + 0.01 * totalDepts) : 1) * precMult * estProcMult * eternalMult;
+    const clickBuffMult = (typeof RandomEvents !== 'undefined' && RandomEvents.getClickBuffMultiplier)
+      ? RandomEvents.getClickBuffMultiplier()
+      : 1;
+    Game.formsPerClick = clickBase * clickMult * (hasDeptBonus ? (1 + 0.01 * totalDepts) : 1) * precMult * estProcMult * eternalMult * clickBuffMult;
 
     // --- Department income recalc ---
     Departments.recalcIncome();

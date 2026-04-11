@@ -15,7 +15,7 @@ const Save = {
   /** Serialise current game state into a JSON string */
   serialise() {
     return JSON.stringify({
-      version: 10,
+      version: 11,
       timestamp: Date.now(),
       game: {
         forms: Game.forms,

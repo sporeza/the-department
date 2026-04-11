@@ -1793,6 +1793,354 @@ body::before {
 }
 
 
+/* --- The Urgent Memo --- */
+.event-urgent-memo {
+  position: absolute;
+  top: 20%;
+  right: 8%;
+  z-index: 10;
+  cursor: pointer;
+  animation: memo-slide-in 0.5s ease-out;
+}
+
+.event-urgent-memo:hover {
+  filter: brightness(1.15);
+  transform: scale(1.1);
+}
+
+.event-urgent-memo-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  background: #F6E9C9;
+  border: 1.5px solid #7A2222;
+  border-radius: 2px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
+  transform: rotate(-4deg);
+  animation: memo-shake 1.8s ease-in-out infinite alternate;
+}
+
+.event-memo-stamp {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: #8B1E1E;
+  border: 2px solid #8B1E1E;
+  padding: 2px 6px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.event-memo-label {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.45rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  opacity: 0.6;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+@keyframes memo-slide-in {
+  0%   { transform: translateX(120px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes memo-shake {
+  0%   { transform: rotate(-4deg) translateY(0); }
+  50%  { transform: rotate(-2deg) translateY(-2px); }
+  100% { transform: rotate(-5deg) translateY(1px); }
+}
+
+
+/* --- The Escaped Intern --- */
+.event-escaped-intern {
+  position: absolute;
+  top: 55%;
+  left: 10%;
+  z-index: 10;
+  cursor: pointer;
+  animation: intern-wander linear forwards;
+  /* animation-duration set by JS */
+}
+
+.event-escaped-intern:hover {
+  filter: brightness(1.15);
+  transform: scale(1.15);
+}
+
+.event-intern-sprite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: rgba(253, 251, 245, 0.85);
+  border: 1px dashed var(--green);
+  border-radius: 3px;
+}
+
+.event-intern-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.event-intern-label {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.42rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  opacity: 0.55;
+  text-transform: uppercase;
+}
+
+@keyframes intern-wander {
+  0%   { top: 55%; left: 8%; }
+  20%  { top: 70%; left: 30%; }
+  40%  { top: 50%; left: 55%; }
+  60%  { top: 75%; left: 40%; }
+  80%  { top: 60%; left: 70%; }
+  100% { top: 68%; left: calc(100% + 60px); }
+}
+
+
+/* --- The Policy Window (floor-plan notice) --- */
+.event-policy-notice {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  cursor: pointer;
+  animation: policy-pulse 1.6s ease-in-out infinite alternate;
+}
+
+.event-policy-notice:hover {
+  filter: brightness(1.15);
+  transform: translateX(-50%) scale(1.08);
+}
+
+.event-policy-notice-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 14px;
+  background: #FDFBF5;
+  border: 2px solid var(--amber-d);
+  border-radius: 3px;
+  box-shadow: 0 2px 12px rgba(200, 134, 10, 0.35);
+}
+
+.event-policy-notice-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.event-policy-notice-sub {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.45rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--amber-d);
+  text-transform: uppercase;
+}
+
+@keyframes policy-pulse {
+  0%   { box-shadow: 0 2px 10px rgba(200, 134, 10, 0.3); }
+  100% { box-shadow: 0 3px 18px rgba(200, 134, 10, 0.55); }
+}
+
+
+/* --- The Policy Window (choice modal) --- */
+.event-policy-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 10, 0.55);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.event-policy-modal.visible {
+  opacity: 1;
+}
+
+.event-policy-card {
+  background: #FDFBF5;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  padding: 22px 28px 16px;
+  max-width: 520px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  font-family: 'Lora', Georgia, serif;
+}
+
+.event-policy-header {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  color: var(--amber-d);
+  text-transform: uppercase;
+  text-align: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(20, 20, 20, 0.15);
+  margin-bottom: 14px;
+}
+
+.event-policy-body {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--ink);
+  opacity: 0.8;
+  text-align: center;
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+
+.event-policy-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.event-policy-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 12px 16px;
+  background: var(--cream);
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.event-policy-choice:hover {
+  background: var(--amber-l);
+  transform: translateY(-1px);
+}
+
+.event-policy-choice:active {
+  transform: translateY(0);
+}
+
+.event-policy-choice-label {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.event-policy-choice-blurb {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: var(--green);
+  letter-spacing: 0.04em;
+}
+
+.event-policy-timer {
+  width: 100%;
+  height: 5px;
+  background: rgba(20, 20, 20, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.event-policy-timer-bar {
+  height: 100%;
+  width: 100%;
+  background: var(--amber-d);
+  transition: background 0.2s ease;
+}
+
+
+/* --- The Mysterious Package --- */
+.event-mysterious-package {
+  position: absolute;
+  bottom: 10%;
+  left: 12%;
+  z-index: 10;
+  cursor: pointer;
+  animation: package-pulse 2s ease-in-out infinite alternate;
+}
+
+.event-mysterious-package:hover {
+  filter: brightness(1.15);
+  transform: scale(1.12);
+}
+
+.event-package-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  background: #8B5A2B;
+  border: 2px solid #5C3A1A;
+  border-radius: 3px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.event-package-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.event-package-label {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.45rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #F6E9C9;
+  text-transform: uppercase;
+}
+
+@keyframes package-pulse {
+  0%   { box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); }
+  100% { box-shadow: 0 4px 18px rgba(139, 90, 43, 0.55); }
+}
+
+
+/* --- Buff scope tag (click buffs) --- */
+.buff-scope {
+  display: inline-block;
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--amber-d);
+  border: 1px solid var(--amber-d);
+  border-radius: 2px;
+  padding: 1px 4px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+
 /* --- Event Toast --- */
 .event-toast {
   position: fixed;
@@ -1919,7 +2267,11 @@ body::before {
 [data-reduced-motion="true"] .buff-value,
 [data-reduced-motion="true"] #ticker-track,
 [data-reduced-motion="true"] .event-lost-form-inner,
-[data-reduced-motion="true"] .event-inspector-inner {
+[data-reduced-motion="true"] .event-inspector-inner,
+[data-reduced-motion="true"] .event-urgent-memo-inner,
+[data-reduced-motion="true"] .event-urgent-memo,
+[data-reduced-motion="true"] .event-policy-notice,
+[data-reduced-motion="true"] .event-mysterious-package {
   animation: none !important;
 }
 [data-reduced-motion="true"] * {
