@@ -1,5 +1,5 @@
 # The Department
-### Game Design Document v0.4
+### Game Design Document v0.5
 
 ---
 
@@ -156,7 +156,120 @@ Each department gets ~4 upgrades at ownership milestones: 1, 10, 25, 50, 100.
 ### 2. Synergy Upgrades
 Unlocked based on owning combinations of department types. Reward players who diversify rather than stacking one department.
 
-*Example:* Own 15 Sub-Committees + 10 Oversight Bodies → unlock **"Jurisdictional Overlap"** → Sub-Committees and Oversight Bodies each gain +50% output per tier of the other owned.
+Synergies are housed in the **Directives shop** — not behind the Restructuring. They are among the game's richest writing, and burying them in a prestige layer means most players encounter them too late. The shop version keeps them readable on a first run. A small separate category of **Precedent Synergies** lives in the prestige layer for players on their second run or beyond (see *Prestige System: The Restructuring*).
+
+#### Synergy Tier Structure
+
+| Tier | Purchase Cost | Unlock Condition | Purpose |
+|---|---|---|---|
+| **Standard Synergies** | Directives | Own X of each department | Mutual output bonus to both departments |
+| **Deep Synergies** | Directives (expensive) | Own higher counts + the relevant standard synergy already purchased | Stronger bonus; occasionally introduces a new rule |
+| **Precedent Synergies** | Precedents | 2nd+ Restructuring | Permanent, run-persistent cross-department bonuses |
+
+#### Standard Synergies
+
+---
+
+**Intern + Filing Cabinet**
+> *"Misfiling Protocol"*
+*Unlock: 10 Interns, 5 Filing Cabinets*
+Effect: Interns gain +15% output per Filing Cabinet owned. Filing Cabinets gain +10% per Intern owned.
+> *"It turns out the wrong cabinet was the right cabinet all along. No one questions this."*
+
+---
+
+**Filing Cabinet + Sub-Committee**
+> *"Evidence-Based Review"*
+*Unlock: 10 Filing Cabinets, 5 Sub-Committees*
+Effect: Sub-Committees gain +1% output for every Filing Cabinet owned.
+> *"The Sub-Committee required documentation. The Filing Cabinet provided it. The Sub-Committee is now reviewing whether the documentation requires its own documentation."*
+
+---
+
+**Sub-Committee + Oversight Body**
+> *"Review of the Review"*
+*Unlock: 20 Sub-Committees, 10 Oversight Bodies*
+Effect: Each Oversight Body owned adds +3% to all Sub-Committee output. Each Sub-Committee owned adds +1% to all Oversight Body output. The asymmetry is intentional — the Oversight Body benefits less from being watched.
+> *"The Oversight Body was asked to review the Sub-Committee's findings. The Sub-Committee was asked to prepare a summary of the review. The summary has been sent to the Oversight Body for review."*
+
+---
+
+**Sub-Committee + Procedure**
+> *"Standing Orders"*
+*Unlock: 15 Sub-Committees, 10 Procedures*
+Effect: Each Procedure owned increases Sub-Committee output by +8%. Each Sub-Committee owned increases Procedure output by +5%.
+> *"The Sub-Committee formalised The Procedure. The Procedure then formalised the Sub-Committee. Neither party can now be dissolved without the other's approval."*
+
+---
+
+**Procedure + Division**
+> *"Operational Continuity"*
+*Unlock: 10 Procedures, 5 Divisions*
+Effect: Divisions gain +20% output per 5 Procedures owned, capped at 10 stacks.
+> *"The Division runs The Procedure. The Procedure runs The Division. The distinction has been filed as non-essential."*
+
+---
+
+**Division + Oversight Body**
+> *"Jurisdictional Overlap"*
+*Unlock: 15 Divisions, 10 Oversight Bodies*
+Effect: Divisions and Oversight Bodies each gain +50% output per tier of the other owned.
+> *"The Division filed a formal query about where its jurisdiction ends. The Oversight Body is investigating whether it has jurisdiction over that query."*
+
+---
+
+**Oversight Body + Annex**
+> *"Extended Jurisdiction"*
+*Unlock: 5 Oversight Bodies, 5 Annexes*
+Effect: Annexes gain +25% output. Oversight Bodies gain +10% output per Annex owned.
+> *"The Oversight Body's remit now technically includes the Annex. The Annex has filed a query about whether the Oversight Body falls within the Annex's remit. The matter is under review."*
+
+---
+
+**Annex + Mandate**
+> *"Territorial Instrument"*
+*Unlock: 8 Annexes, 3 Mandates*
+Effect: Each Mandate owned multiplies Annex output by ×1.5. Each Annex owned adds a flat +500 Forms/sec to each Mandate.
+> *"The Mandate now governs the Annex. The Annex has issued internal passports in the Mandate's name. The Mandate has not been consulted. The Mandate does not require consultation."*
+
+---
+
+**Intern + Mandate** *(the full-arc pairing)*
+> *"Career Trajectory"*
+*Unlock: 50 Interns, 1 Mandate*
+Effect: +5% to all department output.
+The mechanical impact is modest. The joke is the point.
+> *"The Intern has been here long enough to remember when the Mandate was just a thought. The Intern does not speak of this. The Mandate does not remember Interns."*
+
+---
+
+**Filing Cabinet + Mandate**
+> *"Permanent Record"*
+*Unlock: 25 Filing Cabinets, 2 Mandates*
+Effect: All milestones and achievements now grant +0.5% permanent Forms/sec (stacks, resets on Restructuring).
+> *"The Mandate requires a record of all things. The Filing Cabinet provides it. The record now includes a record of the record. The Forms/sec figures are technically correct."*
+
+---
+
+#### Deep Synergies
+
+Purchased after the relevant standard synergy. Higher Directives cost, higher ownership threshold, larger reward. One deep synergy per pairing at most — not every standard synergy graduates to a deep version.
+
+---
+
+**Sub-Committee + Procedure (Deep)**
+> *"Terms of Reference"*
+*Unlock: "Standing Orders" already purchased + 30 Sub-Committees + 20 Procedures*
+Effect: Sub-Committees and Procedures each produce a small passive trickle of Directives without manual conversion — a rare and meaningful exception to the conversion rule.
+> *"Institutional will is now self-generating. This was not intended. It has been noted."*
+
+---
+
+**Oversight Body + Annex (Deep)**
+> *"Regulatory Capture"*
+*Unlock: "Extended Jurisdiction" already purchased + 15 Oversight Bodies + 10 Annexes*
+Effect: The Oversight Body and the Annex swap 10% of their base output rates with each other, then both receive a ×1.5 multiplier to that blended value. Net result: a significant boost to both, with a flavour of institutional merger.
+> *"It is no longer clear which body oversees the other. Both have filed documentation asserting primacy. Both documents have been accepted. Both have been filed. In the same cabinet."*
 
 ### 3. Passive Behaviour Upgrades
 Change the fundamental rules of the game, usually unlocked via milestones.
@@ -328,6 +441,14 @@ Purchased once with Precedents, persist forever. These are the late-game metagam
 | Precedent of Scale | 25 | Unlock a 9th department tier (The Jurisdiction) from the start |
 | The Eternal Mandate | 100 | All departments produce ×2. *"It was always thus."* |
 
+### Precedent Synergies
+A small, separate synergy category purchased with Precedents. These persist across all future Restructurings. There are only two or three — they should feel rare and permanent, like constitutional amendments. Unlike standard synergies (which require specific department pairings to be active), Precedent Synergies apply globally once purchased.
+
+| Upgrade | Cost (Precedents) | Effect |
+|---|---|---|
+| **Doctrine of Precedent** | 15 | Synergy upgrade bonuses start each new run at 50% of their full value, scaling to 100% after 30 minutes. *"The Department has done this before. It remembers. Not everything — but enough."* |
+| **Interlocking Directorates** | 30 | Owning 3 or more distinct synergy upgrades grants all departments an additional ×1.25 multiplier. *"At sufficient scale, everything is connected to everything. This is called efficiency. It is also called something else, but that word has been redacted."* |
+
 ---
 
 ## Visual Design Direction
@@ -492,6 +613,7 @@ To build a genuinely playable, portfolio-ready PoC, the minimum viable feature s
 
 | Question | Decision |
 |---|---|
+| **Synergy upgrade placement** | Standard and Deep synergies live in the Directives shop — not behind the Restructuring. They carry the game's best writing and should be readable on a first run. A separate Precedent Synergies category (2–3 upgrades only) lives in the prestige layer for subsequent runs. |
 | **Click object** | APPROVE rubber stamp into a form box. Clean stamp = Forms generated + ink splatter. Mis-stamp = shake/red flash, no Forms. Hit area stays generous throughout. |
 | **Floor plan role** | Supplements the right-panel purchase list. Visual + count badges only. Not clickable for purchasing. Future: hover/tap for per-department stats. |
 | **Named protagonist** | None. The player is The Department. Default name "The Department", double-click anywhere on the name to rename. |
@@ -500,6 +622,6 @@ To build a genuinely playable, portfolio-ready PoC, the minimum viable feature s
 
 ---
 
-*Document version 0.4 — centre panel tabs and admin system added.*
+*Document version 0.5 — synergy upgrade system fully specified; Precedent Synergies added to prestige layer.*
 *The Department reserves the right to amend this document without notice.*
 *Any amendments will be filed. Filing constitutes approval.*
