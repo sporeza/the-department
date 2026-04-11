@@ -235,14 +235,22 @@ const Upgrades = {
     return true;
   },
 
-  /** Convert Forms to Directives */
+  /** Convert Forms to Directives in bulk (or 'max'). Returns the number of Directives produced. */
+  convertToDirectives(n) {
+    if (!this.directivesUnlocked) return 0;
+    const actual = (n === 'max') ? Math.floor(Game.forms / this.CONVERSION_RATE) : n;
+    if (actual <= 0) return 0;
+    const cost = actual * this.CONVERSION_RATE;
+    if (Game.forms < cost) return 0;
+    Game.forms -= cost;
+    Game.directives += actual;
+    Game.totalDirectivesConverted += actual;
+    return actual;
+  },
+
+  /** Single-unit shim kept for backwards compatibility */
   convertToDirective() {
-    if (!this.directivesUnlocked) return false;
-    if (Game.forms < this.CONVERSION_RATE) return false;
-    Game.forms -= this.CONVERSION_RATE;
-    Game.directives++;
-    Game.totalDirectivesConverted++;
-    return true;
+    return this.convertToDirectives(1) > 0;
   },
 
   /** Recalculate all upgrade effects (click power + dept multipliers) */

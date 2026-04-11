@@ -73,6 +73,14 @@
 
       <!-- Directives Conversion (hidden until unlocked) -->
       <div id="convert-section" style="display:none">
+        <div class="qty-toggle" id="convert-qty-toggle">
+          <span class="qty-label">Convert:</span>
+          <button class="qty-btn active" data-qty="1">x1</button>
+          <button class="qty-btn" data-qty="10">x10</button>
+          <button class="qty-btn" data-qty="50">x50</button>
+          <button class="qty-btn" data-qty="100">x100</button>
+          <button class="qty-btn" data-qty="max">MAX</button>
+        </div>
         <button id="btn-convert" class="btn-convert" disabled>
           Convert ✦ 500 → ◈ 1
         </button>
@@ -112,7 +120,17 @@
       </div>
 
       <!-- Departments List (rendered by ui.js) -->
-      <div id="tab-departments" class="tab-content active"></div>
+      <div id="tab-departments" class="tab-content active">
+        <div class="qty-toggle" id="dept-qty-toggle">
+          <span class="qty-label">Buy:</span>
+          <button class="qty-btn active" data-qty="1">x1</button>
+          <button class="qty-btn" data-qty="10">x10</button>
+          <button class="qty-btn" data-qty="50">x50</button>
+          <button class="qty-btn" data-qty="100">x100</button>
+          <button class="qty-btn" data-qty="max">MAX</button>
+        </div>
+        <div id="dept-list"></div>
+      </div>
 
       <!-- Upgrades List (rendered by ui.js) -->
       <div id="tab-upgrades" class="tab-content"></div>

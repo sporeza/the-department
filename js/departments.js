@@ -110,15 +110,46 @@ const Departments = {
     return Math.floor(tier.baseCost * Math.pow(this.COST_SCALE, tier.owned));
   },
 
+  /** Total cost to buy n consecutive units, summed term-by-term to match single-unit floor rounding */
+  getBulkCost(tier, n) {
+    let total = 0;
+    for (let i = 0; i < n; i++) {
+      total += Math.floor(tier.baseCost * Math.pow(this.COST_SCALE, tier.owned + i));
+    }
+    return total;
+  },
+
+  /** Largest n buyable with current Game.forms (capped to avoid pathological loops) */
+  getMaxAffordable(tier) {
+    if (tier.hidden) return 0;
+    let count = 0;
+    let total = 0;
+    const CAP = 10000;
+    while (count < CAP) {
+      const next = Math.floor(tier.baseCost * Math.pow(this.COST_SCALE, tier.owned + count));
+      if (total + next > Game.forms) break;
+      total += next;
+      count++;
+    }
+    return count;
+  },
+
+  /** Buy n units (or 'max'); returns the number actually purchased (0 on failure). Atomic. */
+  buyBulk(tier, n) {
+    if (tier.hidden) return 0;
+    const actual = (n === 'max') ? this.getMaxAffordable(tier) : n;
+    if (actual <= 0) return 0;
+    const cost = this.getBulkCost(tier, actual);
+    if (Game.forms < cost) return 0;
+    Game.forms -= cost;
+    tier.owned += actual;
+    Upgrades.applyEffects();   // recalculates income + click power (dept-bonus)
+    return actual;
+  },
+
   /** Try to buy one unit of a tier. Returns true on success. */
   buy(tier) {
-    if (tier.hidden) return false;
-    const cost = this.getCost(tier);
-    if (Game.forms < cost) return false;
-    Game.forms -= cost;
-    tier.owned++;
-    Upgrades.applyEffects();   // recalculates income + click power (dept-bonus)
-    return true;
+    return this.buyBulk(tier, 1) > 0;
   },
 
   /** Get number owned of a specific tier by id */

@@ -17,8 +17,10 @@ const UI = {
     this.els.stamp     = document.getElementById('stamp');
     this.els.formsTotal  = document.getElementById('forms-total');
     this.els.formsPerSec = document.getElementById('forms-per-sec');
-    this.els.deptList    = document.getElementById('tab-departments');
+    this.els.deptList    = document.getElementById('dept-list');
     this.els.upgradeList = document.getElementById('tab-upgrades');
+    this.els.deptQtyToggle    = document.getElementById('dept-qty-toggle');
+    this.els.convertQtyToggle = document.getElementById('convert-qty-toggle');
     this.els.directivesRow = document.getElementById('directives-row');
     this.els.directivesTotal = document.getElementById('directives-total');
     this.els.convertBtn = document.getElementById('btn-convert');
@@ -29,6 +31,7 @@ const UI = {
     this.bindClick();
     this.bindTabs();
     this.bindConvert();
+    this.bindQtyToggles();
     this.renderDepartments();
     this.bindDeptNameRename();
 
@@ -143,12 +146,13 @@ const UI = {
         '</div>' +
         '<div class="dept-buy">' +
           '<span class="dept-cost">✦ ' + formatNumber(Departments.getCost(tier)) + '</span>' +
-          '<button class="btn-buy">Buy</button>' +
+          '<button class="btn-buy">Buy x1</button>' +
           '<span class="dept-owned">' + tier.owned + '</span>' +
         '</div>';
 
       el.querySelector('.btn-buy').addEventListener('click', () => {
-        if (Departments.buy(tier)) {
+        const qty = Game.settings.buyQuantity;
+        if (Departments.buyBulk(tier, qty) > 0) {
           this.updateStats();
           this.updateDepartments();
         }
@@ -200,15 +204,29 @@ const UI = {
 
   /** Update cost, owned count, button enabled state, and display name for all tiers */
   updateDepartments() {
+    const qty = Game.settings.buyQuantity;
     const items = this.els.deptList.querySelectorAll('.dept-item');
     items.forEach((el) => {
       const tier = Departments.tiers[el.dataset.tier];
       if (!tier || tier.hidden) { el.style.display = 'none'; return; }
       el.style.display = '';
-      const cost = Departments.getCost(tier);
+
+      let n, cost, label;
+      if (qty === 'max') {
+        n = Departments.getMaxAffordable(tier);
+        cost = n > 0 ? Departments.getBulkCost(tier, n) : Departments.getCost(tier);
+        label = n > 0 ? ('Buy MAX (' + n + ')') : 'Buy MAX';
+      } else {
+        n = qty;
+        cost = Departments.getBulkCost(tier, n);
+        label = 'Buy x' + n;
+      }
+
       el.querySelector('.dept-cost').textContent = '✦ ' + formatNumber(cost);
       el.querySelector('.dept-owned').textContent = tier.owned;
-      el.querySelector('.btn-buy').disabled = Game.forms < cost;
+      const btn = el.querySelector('.btn-buy');
+      btn.textContent = label;
+      btn.disabled = (n <= 0) || (Game.forms < cost);
       // Update display name (skip if currently editing)
       const nameEl = el.querySelector('.dept-tier-name');
       if (!nameEl.querySelector('input')) {
@@ -226,10 +244,33 @@ const UI = {
   // --- Directives conversion ---
   bindConvert() {
     this.els.convertBtn.addEventListener('click', () => {
-      if (Upgrades.convertToDirective()) {
+      const qty = Game.settings.convertQuantity;
+      if (Upgrades.convertToDirectives(qty) > 0) {
         this.updateStats();
       }
     });
+  },
+
+  // --- Quantity toggles (x1 / x10 / x50 / x100 / MAX) ---
+  bindQtyToggles() {
+    const wire = (container, settingKey, onChange) => {
+      if (!container) return;
+      const buttons = container.querySelectorAll('.qty-btn');
+      // Reflect persisted setting on load
+      const current = Game.settings[settingKey];
+      buttons.forEach((btn) => {
+        const raw = btn.dataset.qty;
+        const val = (raw === 'max') ? 'max' : parseInt(raw, 10);
+        btn.classList.toggle('active', val === current);
+        btn.addEventListener('click', () => {
+          Game.settings[settingKey] = val;
+          buttons.forEach((b) => b.classList.toggle('active', b === btn));
+          if (onChange) onChange();
+        });
+      });
+    };
+    wire(this.els.deptQtyToggle, 'buyQuantity', () => this.updateDepartments());
+    wire(this.els.convertQtyToggle, 'convertQuantity', () => this.updateStats());
   },
 
   // --- Department name (left panel h1) renaming ---
@@ -283,7 +324,25 @@ const UI = {
     }
     if (Upgrades.directivesUnlocked) {
       this.els.directivesTotal.textContent = formatNumber(Game.directives);
-      this.els.convertBtn.disabled = Game.forms < Upgrades.CONVERSION_RATE;
+      const rate = Upgrades.CONVERSION_RATE;
+      const cqty = Game.settings.convertQuantity;
+      let cn, ccost;
+      if (cqty === 'max') {
+        cn = Math.floor(Game.forms / rate);
+        ccost = cn * rate;
+      } else {
+        cn = cqty;
+        ccost = cn * rate;
+      }
+      const btn = this.els.convertBtn;
+      if (cqty === 'max') {
+        btn.textContent = cn > 0
+          ? 'Convert ✦ ' + formatNumber(ccost) + ' → ◈ ' + formatNumber(cn)
+          : 'Convert MAX';
+      } else {
+        btn.textContent = 'Convert ✦ ' + formatNumber(ccost) + ' → ◈ ' + formatNumber(cn);
+      }
+      btn.disabled = (cn <= 0) || (Game.forms < ccost);
     }
 
     // Precedents UI visibility (show once any have been earned or restructurings done)

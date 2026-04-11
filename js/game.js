@@ -28,7 +28,9 @@ const Game = {
     offlineIncome: true,
     tickerSpeed: 'normal',       // 'slow' | 'normal' | 'fast'
     reducedMotion: false,
-    numberFormat: 'abbreviated'  // 'full' | 'abbreviated' | 'scientific'
+    numberFormat: 'abbreviated', // 'full' | 'abbreviated' | 'scientific'
+    buyQuantity: 1,              // 1 | 10 | 50 | 100 | 'max'
+    convertQuantity: 1           // 1 | 10 | 50 | 100 | 'max'
   },
 
   /** Called every tick (~100ms) to accumulate passive income */
