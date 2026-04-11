@@ -164,7 +164,13 @@ const Departments = {
     const buffMult = (typeof RandomEvents !== 'undefined') ? RandomEvents.getGlobalBuffMultiplier() : 1;
     const precMult = (typeof Game !== 'undefined' && Game.getPrecedentMultiplier) ? Game.getPrecedentMultiplier() : 1;
     const eternalMult = (Game.precedentUpgrades && Game.precedentUpgrades['the-eternal-mandate']) ? 2 : 1;
-    const globalMult = buffMult * precMult * eternalMult;
+    const interlockingMult = (
+      Game.precedentUpgrades
+      && Game.precedentUpgrades['interlocking-directorates']
+      && typeof Upgrades !== 'undefined'
+      && Upgrades.getSynergyCount() >= 3
+    ) ? 1.25 : 1;
+    const globalMult = buffMult * precMult * eternalMult * interlockingMult;
 
     for (const tier of this.tiers) {
       if (tier.hidden) { tier.effectiveRate = 0; continue; }

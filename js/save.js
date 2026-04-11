@@ -15,7 +15,7 @@ const Save = {
   /** Serialise current game state into a JSON string */
   serialise() {
     return JSON.stringify({
-      version: 9,
+      version: 10,
       timestamp: Date.now(),
       game: {
         forms: Game.forms,
@@ -36,13 +36,15 @@ const Save = {
         peakFormsPerSec: Game.peakFormsPerSec,
         gameStartTime: Game.gameStartTime,
         runStartTime: Game.runStartTime,
+        permanentRecordStacks: Game.permanentRecordStacks || 0,
         settings: Game.settings
       },
       departments: Departments.tiers.map(t => ({ id: t.id, owned: t.owned, totalFormsGenerated: t.totalFormsGenerated || 0 })),
       deptNames: Object.keys(Departments.customNames).length > 0 ? Departments.customNames : undefined,
       upgrades: {
         purchased: Object.keys(Upgrades.purchased),
-        directivesUnlocked: Upgrades.directivesUnlocked
+        directivesUnlocked: Upgrades.directivesUnlocked,
+        directivesTrickleAccumulator: Upgrades.directivesTrickleAccumulator || 0
       },
       milestones: Milestones.getTriggered(),
       events: (typeof RandomEvents !== 'undefined') ? RandomEvents.serialise() : undefined,
@@ -125,6 +127,7 @@ const Save = {
     Game.peakFormsPerSec = (data.game && data.game.peakFormsPerSec) || 0;
     Game.gameStartTime = (data.game && data.game.gameStartTime) || data.timestamp || Date.now();
     Game.runStartTime = (data.game && data.game.runStartTime) || data.timestamp || Date.now();
+    Game.permanentRecordStacks = (data.game && data.game.permanentRecordStacks) || 0;
 
     // Restore settings
     if (data.game && data.game.settings) {
@@ -154,6 +157,7 @@ const Save = {
     // Restore upgrades
     if (data.upgrades) {
       Upgrades.directivesUnlocked = !!data.upgrades.directivesUnlocked;
+      Upgrades.directivesTrickleAccumulator = data.upgrades.directivesTrickleAccumulator || 0;
       Upgrades.purchased = {};
       if (data.upgrades.purchased) {
         data.upgrades.purchased.forEach(id => { Upgrades.purchased[id] = true; });
@@ -187,7 +191,9 @@ const Save = {
     if (Game.settings.offlineIncome && Game.phase === 'running' && data.timestamp && Game.formsPerSec > 0) {
       const elapsed = (Date.now() - data.timestamp) / 1000; // seconds
       if (elapsed > 1) {
-        const offline = Game.formsPerSec * elapsed;
+        // Auto-Filing: +25% to offline income
+        const autoFilingBonus = Upgrades.has('auto-filing') ? 1.25 : 1;
+        const offline = Game.formsPerSec * elapsed * autoFilingBonus;
         Game.forms += offline;
         Game.totalFormsEarned += offline;
         Game.runFormsEarned += offline;

@@ -52,6 +52,20 @@ const Restructuring = {
       desc: 'All departments produce \u00d72 permanently. "It was always thus."',
       cost: 100,
       effect: 'global-x2-permanent'
+    },
+    {
+      id: 'doctrine-of-precedent',
+      name: 'Doctrine of Precedent',
+      desc: 'Synergy upgrade bonuses start each new run at 50% of their full value, scaling to 100% after 30 minutes. The Department has done this before. It remembers \u2014 not everything, but enough.',
+      cost: 15,
+      effect: 'synergy-doctrine'
+    },
+    {
+      id: 'interlocking-directorates',
+      name: 'Interlocking Directorates',
+      desc: 'Owning 3 or more distinct synergy upgrades grants all departments an additional \u00d71.25 multiplier. At sufficient scale, everything is connected to everything.',
+      cost: 30,
+      effect: 'synergy-interlocking'
     }
   ],
 
@@ -89,7 +103,11 @@ const Restructuring = {
   calculateGain() {
     const f = Game.runFormsEarned || 0;
     if (f <= 0) return 0;
-    return Math.floor(Math.sqrt(f / this.PRECEDENT_DIVISOR));
+    let raw = Math.sqrt(f / this.PRECEDENT_DIVISOR);
+    if (typeof Upgrades !== 'undefined' && Upgrades.has('precedent-setting')) {
+      raw *= 1.10;
+    }
+    return Math.floor(raw);
   },
 
   /** Can the player actually restructure? (unlocked AND would gain ≥1) */
@@ -134,6 +152,8 @@ const Restructuring = {
     Game.formsPerClick = 1;
     Game.formsPerSec = 0;
     Game.runStartTime = Date.now();
+    Game.permanentRecordStacks = 0;
+    Upgrades.directivesTrickleAccumulator = 0;
 
     // Reset all department ownership
     for (const tier of Departments.tiers) {

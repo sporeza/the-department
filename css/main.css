@@ -1420,15 +1420,45 @@ body::before {
   border-bottom: 1px solid var(--cream-d);
 }
 
+.upgrades-group {
+  margin-bottom: 6px;
+}
+
+.upgrades-group-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--green);
+  opacity: 0.7;
+  margin: 10px 0 2px;
+  padding-left: 2px;
+}
+
 .upgrade-item {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 0;
+  padding: 10px 0 10px 8px;
   border-bottom: 1px solid var(--cream-d);
+  border-left: 3px solid transparent;
+}
+
+.upgrade-item.synergy {
+  border-left-color: var(--green);
+}
+
+.upgrade-item.synergy-deep {
+  border-left-color: var(--ink);
+  border-left-width: 4px;
 }
 
 .upgrade-item:last-child {
+  border-bottom: none;
+}
+
+.upgrades-group .upgrade-item:last-child {
   border-bottom: none;
 }
 

@@ -24,6 +24,7 @@ const Game = {
   peakFormsPerSec: 0,          // all-time peak Forms/sec
   gameStartTime: Date.now(),   // timestamp of first game start (never reset)
   runStartTime: Date.now(),    // timestamp of current run start (reset on Restructuring)
+  permanentRecordStacks: 0,    // milestone count since last run start, used by Permanent Record synergy
   settings: {
     offlineIncome: true,
     tickerSpeed: 'normal',       // 'slow' | 'normal' | 'fast'
@@ -44,6 +45,7 @@ const Game = {
     }
     Departments.tickTierAttribution(dt);
     Upgrades.checkDirectivesUnlock();
+    Upgrades.tickDirectivesTrickle(dt);
   },
 
   /** Called on a successful stamp click */
@@ -57,6 +59,16 @@ const Game = {
   /** Compounding multiplier from Precedents (+1% per Precedent) */
   getPrecedentMultiplier() {
     return Math.pow(1.01, this.precedents);
+  },
+
+  /** Doctrine of Precedent ramp: 0.5 → 1.0 over the first 30 minutes of a run.
+   * Returns 1 when Doctrine is not owned (callers gate on the upgrade themselves). */
+  getDoctrineScale() {
+    const RAMP_MS = 30 * 60 * 1000;
+    const elapsed = Date.now() - this.runStartTime;
+    if (elapsed >= RAMP_MS) return 1;
+    if (elapsed <= 0) return 0.5;
+    return 0.5 + 0.5 * (elapsed / RAMP_MS);
   },
 
   /** Apply one-time start-of-run effects from Precedent upgrades (called when leaving restructuring phase) */

@@ -393,40 +393,78 @@ const UI = {
       container.appendChild(section);
     }
 
-    // Available upgrades
+    // Available upgrades — grouped by category
     if (available.length > 0) {
       const section = document.createElement('div');
       section.className = 'upgrades-available-section';
       section.innerHTML = '<h4 class="upgrades-section-title">Available</h4>';
-      available.forEach(upg => {
-        const el = document.createElement('div');
-        el.className = 'upgrade-item';
-        el.dataset.upgradeId = upg.id;
-        const sym = upg.currency === 'forms' ? '✦' : '◈';
-        const canAfford = upg.currency === 'forms'
-          ? Game.forms >= upg.cost
-          : Game.directives >= upg.cost;
-        el.innerHTML =
-          '<div class="upgrade-info">' +
-            '<h3 class="upgrade-name">' + upg.name + '</h3>' +
-            '<p class="upgrade-desc">' + upg.desc + '</p>' +
-            '<p class="upgrade-effect">' + this.describeEffect(upg) + '</p>' +
-          '</div>' +
-          '<div class="upgrade-buy">' +
-            '<span class="upgrade-cost">' + sym + ' ' + formatNumber(upg.cost) + '</span>' +
-            '<button class="btn-buy btn-buy-upgrade"' +
-              (canAfford ? '' : ' disabled') + '>Buy</button>' +
-          '</div>';
 
-        el.querySelector('.btn-buy-upgrade').addEventListener('click', () => {
-          if (Upgrades.buy(upg)) {
-            this.updateStats();
-            this.updateDepartments();
-          }
+      // Bucket by category in a fixed display order
+      const groupOrder = [
+        { key: 'click',     label: 'Click' },
+        { key: 'dept-mult', label: 'Departments' },
+        { key: 'synergy',   label: 'Synergies' },
+        { key: 'passive',   label: 'Passive' },
+        { key: 'flavour',   label: 'Flavour' },
+        { key: 'prestige',  label: 'Prestige' }
+      ];
+      const buckets = {};
+      available.forEach(upg => {
+        const key = upg.category || 'passive';
+        (buckets[key] = buckets[key] || []).push(upg);
+      });
+
+      groupOrder.forEach(group => {
+        const list = buckets[group.key];
+        if (!list || list.length === 0) return;
+
+        const groupEl = document.createElement('div');
+        groupEl.className = 'upgrades-group upgrades-group-' + group.key;
+        groupEl.innerHTML = '<h5 class="upgrades-group-title">' + group.label + '</h5>';
+
+        list.forEach(upg => {
+          const el = document.createElement('div');
+          let cls = 'upgrade-item';
+          if (upg.category === 'synergy') cls += ' synergy';
+          if (upg.tier === 'deep') cls += ' synergy-deep';
+          el.className = cls;
+          el.dataset.upgradeId = upg.id;
+          const sym = upg.currency === 'forms' ? '✦' : '◈';
+          const canAfford = upg.currency === 'forms'
+            ? Game.forms >= upg.cost
+            : Game.directives >= upg.cost;
+          el.innerHTML =
+            '<div class="upgrade-info">' +
+              '<h3 class="upgrade-name">' + upg.name + '</h3>' +
+              '<p class="upgrade-desc">' + upg.desc + '</p>' +
+              '<p class="upgrade-effect">' + this.describeEffect(upg) + '</p>' +
+            '</div>' +
+            '<div class="upgrade-buy">' +
+              '<span class="upgrade-cost">' + sym + ' ' + formatNumber(upg.cost) + '</span>' +
+              '<button class="btn-buy btn-buy-upgrade"' +
+                (canAfford ? '' : ' disabled') + '>Buy</button>' +
+            '</div>';
+
+          el.querySelector('.btn-buy-upgrade').addEventListener('click', () => {
+            if (Upgrades.buy(upg)) {
+              this.updateStats();
+              this.updateDepartments();
+              // Force a re-render so a freshly-purchased synergy moves to the
+              // Purchased list and dependents (e.g. deep synergies) appear.
+              this._lastAvailableUpgrades = null;
+              this.updateUpgradesTab();
+              if (typeof CentreTabs !== 'undefined' && CentreTabs.renderRegistry) {
+                CentreTabs.renderRegistry();
+              }
+            }
+          });
+
+          groupEl.appendChild(el);
         });
 
-        section.appendChild(el);
+        section.appendChild(groupEl);
       });
+
       container.appendChild(section);
     } else if (purchased.length === 0) {
       container.innerHTML = '<p class="tab-placeholder">Upgrades will become available once Directives are unlocked.</p>';
@@ -450,16 +488,48 @@ const UI = {
 
   describeEffect(upg) {
     const eff = upg.effect;
+    const tierName = (id) => {
+      const t = Departments.tiers.find(tt => tt.id === id);
+      return t ? Departments.getDisplayName(t) : id;
+    };
     switch (eff.type) {
       case 'click-add': return '+' + eff.value + ' Forms/click';
       case 'click-mult': return '\u00d7' + eff.value + ' click output';
       case 'click-dept-bonus': return 'Click \u00d7(1 + 0.01 per dept owned)';
       case 'dept-mult':
-        var tier = Departments.tiers.find(t => t.id === eff.target);
-        return '\u00d7' + eff.value + ' ' + (tier ? Departments.getDisplayName(tier) : eff.target) + ' output';
+        return '\u00d7' + eff.value + ' ' + tierName(eff.target) + ' output';
       case 'global-mult': return '\u00d7' + eff.value + ' all department output';
       case 'global-mult-if-doubled': return '+5% all output if any dept has 2+ owned';
       case 'unlock-restructuring': return 'Unlocks the Restructuring procedure';
+      case 'auto-filing': return 'Offline income +25% (and never capped)';
+      case 'precedent-bonus-flat':
+        return 'Restructurings yield +' + Math.round(eff.percent * 100) + '% Precedents';
+      case 'synergy':
+        if (!Array.isArray(eff.bonuses)) return '';
+        return eff.bonuses.map(b => {
+          if (b.kind === 'mult-per-owned') {
+            return tierName(b.target) + ' +' + Math.round(b.percentPerOwned * 100) + '% per ' + tierName(b.source) + ' owned';
+          }
+          if (b.kind === 'mult-per-grouped') {
+            return tierName(b.target) + ' +' + Math.round(b.percentPerGroup * 100) + '% per ' + b.groupSize + ' ' + tierName(b.source) + ' (max ' + b.maxStacks + ' stacks)';
+          }
+          if (b.kind === 'mult-flat') {
+            return '\u00d7' + b.value + ' ' + tierName(b.target) + ' output';
+          }
+          if (b.kind === 'mult-flat-per-owned') {
+            return tierName(b.target) + ' +' + b.flatPerOwned + ' Forms/sec per ' + tierName(b.source) + ' owned';
+          }
+          if (b.kind === 'global-mult') {
+            return '\u00d7' + b.value + ' all department output';
+          }
+          if (b.kind === 'milestone-stacking') {
+            return '+' + (b.percentPerMilestone * 100).toFixed(1) + '% global per milestone earned this run';
+          }
+          if (b.kind === 'directives-trickle') {
+            return 'Generates ' + b.ratePerSec + ' \u25c8/sec passively';
+          }
+          return '';
+        }).filter(Boolean).join(' \u00b7 ');
       default: return '';
     }
   },

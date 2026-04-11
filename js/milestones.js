@@ -254,6 +254,13 @@ const Milestones = {
     this.triggered[m.id] = true;
     this._queue.push(m);
     Ticker.push(m.text, { source: 'milestone', dedupeKey: 'ms:' + m.id });
+
+    // Permanent Record (Filing Cabinet + Mandate synergy):
+    // each milestone fired during a run grants +0.5% global Forms/sec.
+    if (typeof Upgrades !== 'undefined' && Upgrades.has('permanent-record')) {
+      Game.permanentRecordStacks = (Game.permanentRecordStacks || 0) + 1;
+      Upgrades.applyEffects();
+    }
   },
 
   /** Process queued toast notifications (called from game loop) */
